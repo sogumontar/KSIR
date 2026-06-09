@@ -3,7 +3,327 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* ─── Design System: Material Design 3 Tokens ─── */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Font Families */
+    --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* ── Colors ── */
+    --color-primary: #091426;
+    --color-primary-container: #1e293b;
+    --color-primary-fixed: #d8e3fb;
+    --color-primary-fixed-dim: #bcc7de;
+    --color-on-primary: #ffffff;
+    --color-on-primary-container: #8590a6;
+    --color-on-primary-fixed: #111c2d;
+    --color-on-primary-fixed-variant: #3c475a;
+
+    --color-secondary: #006c49;
+    --color-secondary-container: #6cf8bb;
+    --color-secondary-fixed: #6ffbbe;
+    --color-secondary-fixed-dim: #4edea3;
+    --color-on-secondary: #ffffff;
+    --color-on-secondary-container: #00714d;
+    --color-on-secondary-fixed: #002113;
+    --color-on-secondary-fixed-variant: #005236;
+
+    --color-tertiary: #001334;
+    --color-tertiary-container: #00275b;
+    --color-tertiary-fixed: #d8e2ff;
+    --color-tertiary-fixed-dim: #adc6ff;
+    --color-on-tertiary: #ffffff;
+    --color-on-tertiary-container: #4c8dff;
+    --color-on-tertiary-fixed: #001a42;
+    --color-on-tertiary-fixed-variant: #004395;
+
+    --color-error: #ba1a1a;
+    --color-error-container: #ffdad6;
+    --color-on-error: #ffffff;
+    --color-on-error-container: #93000a;
+
+    --color-surface: #f8f9ff;
+    --color-surface-bright: #f8f9ff;
+    --color-surface-dim: #cbdbf5;
+    --color-surface-tint: #545f73;
+    --color-surface-variant: #d3e4fe;
+    --color-surface-container: #e5eeff;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container-high: #dce9ff;
+    --color-surface-container-highest: #d3e4fe;
+    --color-surface-container-lowest: #ffffff;
+
+    --color-background: #f8f9ff;
+    --color-on-background: #0b1c30;
+    --color-on-surface: #0b1c30;
+    --color-on-surface-variant: #45474c;
+
+    --color-outline: #75777d;
+    --color-outline-variant: #c5c6cd;
+
+    --color-inverse-surface: #213145;
+    --color-inverse-on-surface: #eaf1ff;
+    --color-inverse-primary: #bcc7de;
+
+    /* ── Spacing ── */
+    --spacing-base: 4px;
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 3rem;
+    --spacing-gutter: 1.5rem;
+    --spacing-container-max: 1440px;
+
+    /* ── Border Radius ── */
+    --radius: 0.125rem;
+    --radius-lg: 0.25rem;
+    --radius-xl: 0.5rem;
+    --radius-full: 0.75rem;
+
+    /* ── Font Sizes (with line-height, weight, letter-spacing) ── */
+    --font-size-label-md: 14px;
+    --font-size-label-lg: 16px;
+    --font-size-body-md: 16px;
+    --font-size-body-lg: 18px;
+    --font-size-headline-md: 20px;
+    --font-size-headline-lg: 28px;
+    --font-size-headline-lg-mobile: 24px;
+    --font-size-display: 36px;
+}
+
+/* ─── Custom Typography Utilities ─── */
+/* These replicate the exact font tokens from the HTML designs */
+
+.font-label-md, .text-label-md {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 14px;
+    line-height: 16px;
+    font-weight: 600;
+}
+
+.font-label-lg, .text-label-lg {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0.01em;
+    font-weight: 600;
+}
+
+.font-body-md, .text-body-md {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+}
+
+.font-body-lg, .text-body-lg {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 400;
+}
+
+.font-headline-md, .text-headline-md {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+}
+
+.font-headline-lg, .text-headline-lg {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+}
+
+.font-headline-lg-mobile, .text-headline-lg-mobile {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 700;
+}
+
+.font-display, .text-display {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 36px;
+    line-height: 44px;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+}
+
+/* ─── Material Symbols ─── */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* ─── Custom Scrollbar ─── */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 10px;
+}
+
+/* ─── Chart Container ─── */
+.chart-container {
+    position: relative;
+    background-image: linear-gradient(to right, #E2E8F0 1px, transparent 1px),
+                      linear-gradient(to bottom, #E2E8F0 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* ─── Card Hover Effect ─── */
+.card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Table Utilities ─── */
+.table-stripe tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+.table-row-zebra:nth-child(even) {
+    background-color: #f8fafc;
+}
+.table-row-zebra:nth-child(odd) {
+    background-color: #ffffff;
+}
+.table-header {
+    background-color: #0f172a;
+    color: white;
+    font-weight: 600;
+    padding: 16px;
+    text-align: left;
+}
+.table-cell {
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* ─── Sidebar Active State ─── */
+.sidebar-active {
+    border-left: 4px solid #006c49;
+    background-color: #1e293b;
+    color: white !important;
+}
+
+/* ─── Form Utilities ─── */
+.form-input {
+    min-height: 48px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 0 16px;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+    outline: none;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 16px;
+}
+
+/* ─── Button Utilities ─── */
+.btn-primary {
+    background-color: #006c49;
+    color: white;
+    min-height: 48px;
+    border-radius: 4px;
+    padding: 0 24px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+.btn-primary:hover {
+    background-color: #005236;
+}
+.btn-secondary {
+    background-color: #3B82F6;
+    color: white;
+    min-height: 48px;
+    border-radius: 4px;
+    padding: 0 24px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+.btn-secondary:hover {
+    background-color: #2563eb;
+}
+.btn-ghost {
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    min-height: 48px;
+    border-radius: 4px;
+    padding: 0 24px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    transition: background-color 0.2s;
+}
+.btn-ghost:hover {
+    background-color: #f1f5f9;
+}
+.btn-icon {
+    color: #475569;
+    padding: 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+.btn-icon:hover {
+    background-color: #f1f5f9;
+    color: #3B82F6;
+}
+
+/* ─── Login Card ─── */
+.login-card {
+    background-color: #ffffff;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0px 10px 15px -3px rgba(15, 23, 42, 0.05);
+}
+
+/* ─── Modal Utilities ─── */
+.modal-overlay {
+    background: rgba(15, 23, 42, 0.5);
+}
+.modal-content {
+    box-shadow: 0px 10px 15px -3px rgba(15, 23, 42, 0.15);
+}
+
+/* ─── Card Surface ─── */
+.card-surface {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+/* ─── Focus Ring ─── */
+.focus-ring:focus-within {
+    outline: 2px solid #3B82F6;
+    outline-offset: 2px;
 }

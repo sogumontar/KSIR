@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Inventory Pro - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-container": "#4c8dff",
+                      "tertiary-fixed": "#d8e2ff",
+                      "on-tertiary-fixed": "#001a42",
+                      "surface-tint": "#545f73",
+                      "primary-fixed-dim": "#bcc7de",
+                      "surface-container-lowest": "#ffffff",
+                      "on-error": "#ffffff",
+                      "surface-dim": "#cbdbf5",
+                      "on-secondary-fixed-variant": "#005236",
+                      "on-background": "#0b1c30",
+                      "on-secondary-container": "#00714d",
+                      "on-primary-container": "#8590a6",
+                      "on-primary-fixed": "#111c2d",
+                      "surface-container-highest": "#d3e4fe",
+                      "on-error-container": "#93000a",
+                      "surface-bright": "#f8f9ff",
+                      "background": "#f8f9ff",
+                      "tertiary-container": "#00275b",
+                      "on-secondary": "#ffffff",
+                      "inverse-on-surface": "#eaf1ff",
+                      "error-container": "#ffdad6",
+                      "error": "#ba1a1a",
+                      "secondary": "#10B981",
+                      "surface-container": "#e5eeff",
+                      "primary-fixed": "#d8e3fb",
+                      "outline-variant": "#c5c6cd",
+                      "inverse-primary": "#bcc7de",
+                      "surface-container-high": "#dce9ff",
+                      "surface": "#f8f9ff",
+                      "tertiary": "#3B82F6",
+                      "secondary-container": "#6cf8bb",
+                      "outline": "#75777d",
+                      "inverse-surface": "#213145",
+                      "on-primary-fixed-variant": "#3c475a",
+                      "primary-container": "#1e293b",
+                      "secondary-fixed-dim": "#4edea3",
+                      "secondary-fixed": "#6ffbbe",
+                      "tertiary-fixed-dim": "#adc6ff",
+                      "on-surface-variant": "#45474c",
+                      "on-secondary-fixed": "#002113",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-fixed-variant": "#004395",
+                      "on-tertiary": "#ffffff",
+                      "primary": "#1E293B",
+                      "surface-container-low": "#eff4ff",
+                      "surface-variant": "#d3e4fe",
+                      "on-surface": "#0b1c30"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xs": "0.5rem",
+                      "md": "1.5rem",
+                      "container-max": "1440px",
+                      "base": "4px",
+                      "xl": "3rem",
+                      "sm": "1rem",
+                      "lg": "2rem",
+                      "gutter": "1.5rem"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Public Sans"],
+                      "body-md": ["Public Sans"],
+                      "label-md": ["Public Sans"],
+                      "label-lg": ["Public Sans"],
+                      "display": ["Public Sans"],
+                      "body-lg": ["Public Sans"],
+                      "headline-md": ["Public Sans"],
+                      "headline-lg-mobile": ["Public Sans"]
+              },
+              "fontSize": {
+                      "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "16px", "fontWeight": "600"}],
+                      "label-lg": ["16px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "display": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 10px;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] font-body-md text-on-surface">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-[280px] flex flex-col bg-primary border-r border-outline-variant z-50 overflow-y-auto custom-scrollbar">
+    <div class="p-lg">
+        <h1 class="font-display text-display text-white mb-xs">Inventory Pro</h1>
+        <p class="font-label-lg text-label-lg text-on-primary-container">Enterprise Management</p>
+    </div>
+    <nav class="flex-1 px-sm space-y-xs">
+        <!-- Active Tab: Dashboard -->
+        <a class="flex items-center gap-sm px-md py-sm text-white border-l-4 border-secondary bg-primary-container transition-colors duration-200 cursor-pointer active:opacity-80" href="#">
+            <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+            <span class="font-label-lg text-label-lg">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-sm px-md py-sm text-on-primary-container hover:text-white hover:bg-primary-container transition-colors duration-200 cursor-pointer active:opacity-80" href="#">
+            <span class="material-symbols-outlined" data-icon="group">group</span>
+            <span class="font-label-lg text-label-lg">User Management</span>
+        </a>
+        <a class="flex items-center gap-sm px-md py-sm text-on-primary-container hover:text-white hover:bg-primary-container transition-colors duration-200 cursor-pointer active:opacity-80" href="#">
+            <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+            <span class="font-label-lg text-label-lg">Goods &amp; Recipients</span>
+        </a>
+        <a class="flex items-center gap-sm px-md py-sm text-on-primary-container hover:text-white hover:bg-primary-container transition-colors duration-200 cursor-pointer active:opacity-80" href="#">
+            <span class="material-symbols-outlined" data-icon="history">history</span>
+            <span class="font-label-lg text-label-lg">Sales History</span>
+        </a>
+    </nav>
+    <div class="p-md mt-auto">
+        <div class="flex items-center gap-md p-sm bg-primary-container rounded-lg">
+            <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-bold">
+                AD
+            </div>
+            <div>
+                <p class="text-white font-label-lg">Admin User</p>
+                <p class="text-on-primary-container text-xs">Super Admin</p>
+            </div>
+        </div>
+    </div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed left-[280px] top-0 h-16 flex justify-between items-center px-lg bg-surface border-b border-outline-variant shadow-sm z-40 w-[calc(100%-280px)]">
+    <div class="flex items-center gap-lg">
+        <div class="relative w-96">
+            <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+            <input class="w-full pl-xl pr-md py-xs bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-tertiary font-label-md" placeholder="Search transactions, inventory..." type="text"/>
+        </div>
+    </div>
+    <div class="flex items-center gap-lg">
+        <button class="flex items-center gap-xs px-md py-xs bg-surface-container-high rounded-full hover:bg-surface-container-low transition-all font-label-md text-on-surface">
+            <span>Role Switcher</span>
+            <span class="material-symbols-outlined text-sm" data-icon="swap_horiz">swap_horiz</span>
+        </button>
+        <div class="flex items-center gap-sm">
+            <button class="p-xs hover:bg-surface-container-low rounded-full transition-all relative">
+                <span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+            </button>
+            <button class="p-xs hover:bg-surface-container-low rounded-full transition-all">
+                <span class="material-symbols-outlined text-primary" data-icon="logout">logout</span>
+            </button>
+        </div>
+    </div>
+</header>
+<!-- Main Content -->
+<main class="ml-[280px] mt-16 p-lg max-w-[1440px]">
+    <!-- Header Section -->
+    <div class="mb-lg flex justify-between items-end">
+        <div>
+            <h2 class="font-headline-lg text-headline-lg text-primary">Executive Dashboard</h2>
+            <p class="font-body-md text-on-surface-variant">Real-time performance metrics and inventory status</p>
+        </div>
+        <button class="flex items-center gap-sm bg-secondary text-white px-lg py-md rounded-lg font-label-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all">
+            <span class="material-symbols-outlined" data-icon="download">download</span>
+            Export Report
+        </button>
+    </div>
+    <!-- KPI Cards Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-lg">
+        <!-- Total Sales Card -->
+        <div class="bg-white border border-outline-variant p-lg card-hover transition-all cursor-pointer group flex flex-col justify-between h-48 rounded-lg">
+            <div class="flex justify-between items-start">
+                <div class="p-sm bg-secondary-container rounded-lg">
+                    <span class="material-symbols-outlined text-secondary" data-icon="payments">payments</span>
+                </div>
+                <span class="text-secondary font-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+                        +12.5%
+                    </span>
+            </div>
+            <div>
+                <p class="font-label-lg text-on-surface-variant mb-xs">Total Sales</p>
+                <h3 class="font-display text-display text-primary">$124,500</h3>
+            </div>
+            <div class="flex items-center text-tertiary font-label-md group-hover:underline">
+                View transactions
+                <span class="material-symbols-outlined text-sm ml-xs" data-icon="arrow_forward">arrow_forward</span>
+            </div>
+        </div>
+        <!-- Items In Progress Card -->
+        <div class="bg-white border border-outline-variant p-lg card-hover transition-all cursor-pointer group flex flex-col justify-between h-48 rounded-lg">
+            <div class="flex justify-between items-start">
+                <div class="p-sm bg-tertiary-fixed rounded-lg">
+                    <span class="material-symbols-outlined text-tertiary" data-icon="pending_actions">pending_actions</span>
+                </div>
+                <span class="text-on-surface-variant font-label-md">Current cycle</span>
+            </div>
+            <div>
+                <p class="font-label-lg text-on-surface-variant mb-xs">Items In Progress</p>
+                <h3 class="font-display text-display text-primary">42</h3>
+            </div>
+            <div class="flex items-center text-tertiary font-label-md group-hover:underline">
+                Manage processing
+                <span class="material-symbols-outlined text-sm ml-xs" data-icon="arrow_forward">arrow_forward</span>
+            </div>
+        </div>
+        <!-- Items On Loan Card -->
+        <div class="bg-white border border-outline-variant p-lg card-hover transition-all cursor-pointer group flex flex-col justify-between h-48 rounded-lg">
+            <div class="flex justify-between items-start">
+                <div class="p-sm bg-surface-container rounded-lg">
+                    <span class="material-symbols-outlined text-on-primary-fixed-variant" data-icon="contract_edit">contract_edit</span>
+                </div>
+                <span class="text-error font-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+                        3 Overdue
+                    </span>
+            </div>
+            <div>
+                <p class="font-label-lg text-on-surface-variant mb-xs">Items On Loan</p>
+                <h3 class="font-display text-display text-primary">18</h3>
+            </div>
+            <div class="flex items-center text-tertiary font-label-md group-hover:underline">
+                Review loan agreements
+                <span class="material-symbols-outlined text-sm ml-xs" data-icon="arrow_forward">arrow_forward</span>
+            </div>
+        </div>
+    </div>
+    <!-- Main Analytics Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+        <!-- Sales Growth Analytics -->
+        <div class="lg:col-span-8 bg-white border border-outline-variant p-lg rounded-lg">
+            <div class="flex justify-between items-center mb-lg">
+                <div>
+                    <h4 class="font-headline-md text-headline-md text-primary">Sales Growth Analytics</h4>
+                    <p class="font-body-md text-on-surface-variant">Performance trend visualization</p>
+                </div>
+                <div class="flex items-center gap-md">
+                    <div class="flex bg-surface-container-low p-base rounded-lg border border-outline-variant">
+                        <button class="chart-filter-btn px-md py-xs font-label-md rounded-lg bg-white shadow-sm text-primary transition-all" onclick="updateChart('daily')">Daily</button>
+                        <button class="chart-filter-btn px-md py-xs font-label-md text-on-surface-variant hover:bg-surface-container transition-all" onclick="updateChart('monthly')">Monthly</button>
+                        <button class="chart-filter-btn px-md py-xs font-label-md text-on-surface-variant hover:bg-surface-container transition-all" onclick="updateChart('yearly')">Yearly</button>
+                    </div>
+                    <button class="p-sm hover:bg-surface-container rounded-lg border border-outline-variant transition-all">
+                        <span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container flex items-end justify-between gap-md pt-lg">
+                <!-- Simple CSS/SVG Chart Representation -->
+                <div class="w-full h-full relative">
+                    <div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                        <div class="border-t border-slate-100 w-full h-0"></div>
+                        <div class="border-t border-slate-100 w-full h-0"></div>
+                        <div class="border-t border-slate-100 w-full h-0"></div>
+                        <div class="border-t border-slate-100 w-full h-0"></div>
+                        <div class="border-t border-slate-200 w-full h-0"></div>
+                    </div>
+                    <svg class="w-full h-full" viewbox="0 0 800 300">
+                        <defs>
+                            <lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="#10B981" stop-opacity="0.2"></stop>
+                                <stop offset="100%" stop-color="#10B981" stop-opacity="0"></stop>
+                            </lineargradient>
+                        </defs>
+                        <path d="M0 250 Q 100 200, 200 220 T 400 120 T 600 180 T 800 50" fill="none" stroke="#10B981" stroke-linecap="round" stroke-width="4"></path>
+                        <path d="M0 250 Q 100 200, 200 220 T 400 120 T 600 180 T 800 50 L 800 300 L 0 300 Z" fill="url(#chartGradient)"></path>
+                        <circle class="cursor-pointer hover:r-8 transition-all" cx="200" cy="220" fill="#10B981" r="6" stroke="white" stroke-width="2"></circle>
+                        <circle class="cursor-pointer hover:r-8 transition-all" cx="400" cy="120" fill="#10B981" r="6" stroke="white" stroke-width="2"></circle>
+                        <circle class="cursor-pointer hover:r-8 transition-all" cx="800" cy="50" fill="#10B981" r="6" stroke="white" stroke-width="2"></circle>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex justify-between mt-md px-md">
+                <span class="font-label-md text-on-surface-variant">Jan</span>
+                <span class="font-label-md text-on-surface-variant">Feb</span>
+                <span class="font-label-md text-on-surface-variant">Mar</span>
+                <span class="font-label-md text-on-surface-variant">Apr</span>
+                <span class="font-label-md text-on-surface-variant">May</span>
+                <span class="font-label-md text-on-surface-variant">Jun</span>
+            </div>
+        </div>
+        <!-- Recent Notifications / Activity -->
+        <div class="lg:col-span-4 flex flex-col gap-gutter">
+            <div class="bg-white border border-outline-variant p-lg rounded-lg flex-1">
+                <div class="flex justify-between items-center mb-md">
+                    <h4 class="font-headline-md text-headline-md text-primary">System Health</h4>
+                    <span class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold uppercase tracking-wider">Operational</span>
+                </div>
+                <div class="space-y-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label-lg text-on-surface-variant">Server Load</span>
+                        <div class="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="w-[34%] h-full bg-secondary"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-label-lg text-on-surface-variant">API Latency</span>
+                        <span class="font-label-md text-primary">24ms</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-label-lg text-on-surface-variant">DB Connectivity</span>
+                        <span class="font-label-md text-secondary">99.9%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="relative rounded-lg overflow-hidden h-64 border border-outline-variant group">
+                <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A modern, high-tech logistics control center with large digital screens displaying global shipping data and inventory analytics. The room is dimly lit with cool blue ambient lighting, creating a professional and futuristic institutional atmosphere. High-contrast white text overlays a clean, glass-morphic interface, emphasizing enterprise efficiency and technological sophistication." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsNkFxaLUoF5jSUlcjcF9s_Wg1jRCxq0VjKd0ypWMqm9DT8x4kgDQAa7-H2ZRvMwRS1uawRObNjZeS2ksRWHAMZS2k9rsPYBiRfcEdZeVL-33bIUMylcphOY4IsaivBvt25NFeZPrOubwyot_Eq_aSm6Wi79cY9JVTPGc1lNRPIQ2E0U9oXdXPs2Fedi23YoRPeRaF_hCSM0LFMv-e95i33oKP0Bkn2_K4p2pGs4GIiuDQ87LLJkZd8tQ04UIJOKEcENceBe0_"/>
+                <div class="absolute inset-0 bg-gradient-to-t from-primary/90 to-transparent flex flex-col justify-end p-lg">
+                    <h5 class="text-white font-headline-md mb-xs">Inventory Audit 2024</h5>
+                    <p class="text-on-primary-container text-sm">Review scheduled for Q3 is now available for early preparation.</p>
+                    <button class="mt-md text-white font-label-md flex items-center gap-xs">
+                        Learn more
+                        <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Secondary Grid: Recent Transactions & Asset Map -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mt-lg">
+        <div class="lg:col-span-12 bg-white border border-outline-variant rounded-lg overflow-hidden shadow-sm">
+            <div class="p-lg border-b border-outline-variant flex justify-between items-center">
+                <h4 class="font-headline-md text-headline-md text-primary">Recent Inventory Transactions</h4>
+                <button class="text-tertiary font-label-lg hover:underline transition-all">View All History</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                    <tr class="bg-slate-50">
+                        <th class="px-lg py-md font-label-lg text-primary border-b-2 border-outline-variant">Transaction ID</th>
+                        <th class="px-lg py-md font-label-lg text-primary border-b-2 border-outline-variant">Recipient</th>
+                        <th class="px-lg py-md font-label-lg text-primary border-b-2 border-outline-variant">Asset Class</th>
+                        <th class="px-lg py-md font-label-lg text-primary border-b-2 border-outline-variant">Status</th>
+                        <th class="px-lg py-md font-label-lg text-primary border-b-2 border-outline-variant text-right">Value</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-lg py-md font-label-md text-primary">TXN-94021</td>
+                        <td class="px-lg py-md">
+                            <div class="flex items-center gap-sm">
+                                <div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center font-bold text-xs">JD</div>
+                                <span class="font-body-md text-on-surface">John Doe</span>
+                            </div>
+                        </td>
+                        <td class="px-lg py-md font-body-md text-on-surface-variant">Heavy Machinery</td>
+                        <td class="px-lg py-md">
+                            <span class="px-sm py-base bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold">COMPLETED</span>
+                        </td>
+                        <td class="px-lg py-md font-label-lg text-primary text-right">$12,450.00</td>
+                    </tr>
+                    <tr class="bg-slate-50/50 hover:bg-slate-50 transition-colors group">
+                        <td class="px-lg py-md font-label-md text-primary">TXN-94022</td>
+                        <td class="px-lg py-md">
+                            <div class="flex items-center gap-sm">
+                                <div class="w-8 h-8 rounded-full bg-tertiary-fixed flex items-center justify-center font-bold text-xs">AS</div>
+                                <span class="font-body-md text-on-surface">Alice Smith</span>
+                            </div>
+                        </td>
+                        <td class="px-lg py-md font-body-md text-on-surface-variant">Electronic Components</td>
+                        <td class="px-lg py-md">
+                            <span class="px-sm py-base bg-surface-container text-on-primary-container rounded-full text-xs font-bold">PROCESSING</span>
+                        </td>
+                        <td class="px-lg py-md font-label-lg text-primary text-right">$3,120.00</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-lg py-md font-label-md text-primary">TXN-94023</td>
+                        <td class="px-lg py-md">
+                            <div class="flex items-center gap-sm">
+                                <div class="w-8 h-8 rounded-full bg-error-container flex items-center justify-center font-bold text-xs">RK</div>
+                                <span class="font-body-md text-on-surface">Robert King</span>
+                            </div>
+                        </td>
+                        <td class="px-lg py-md font-body-md text-on-surface-variant">Office Furniture</td>
+                        <td class="px-lg py-md">
+                            <span class="px-sm py-base bg-error-container text-on-error-container rounded-full text-xs font-bold">ON LOAN</span>
+                        </td>
+                        <td class="px-lg py-md font-label-lg text-primary text-right">$8,200.00</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+    function updateChart(filter) {
+        const buttons = document.querySelectorAll('.chart-filter-btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('bg-white', 'shadow-sm', 'text-primary');
+            btn.classList.add('text-on-surface-variant', 'hover:bg-surface-container');
+            if (btn.innerText.toLowerCase() === filter) {
+                btn.classList.add('bg-white', 'shadow-sm', 'text-primary');
+                btn.classList.remove('text-on-surface-variant', 'hover:bg-surface-container');
+            }
+        });
+
+        // Logic to update chart visual state could go here
+        console.log('Switching to', filter, 'view');
+    }
+
+    // Simple interaction for cards
+    document.querySelectorAll('.card-hover').forEach(card => {
+        card.addEventListener('click', () => {
+            card.style.transform = 'scale(0.98)';
+            setTimeout(() => { card.style.transform = ''; }, 100);
+        });
+    });
+</script>
+</body></html>

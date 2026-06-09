@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Sales History - Inventory Pro</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Alpine.js -->
+    <script defer="" src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#3c475a",
+                        "primary-container": "#1e293b",
+                        "secondary-container": "#6cf8bb",
+                        "outline": "#75777d",
+                        "inverse-surface": "#213145",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-container": "#e5eeff",
+                        "primary-fixed": "#d8e3fb",
+                        "outline-variant": "#c5c6cd",
+                        "inverse-primary": "#bcc7de",
+                        "surface": "#f8f9ff",
+                        "tertiary": "#001334",
+                        "surface-container-high": "#dce9ff",
+                        "primary": "#091426",
+                        "on-surface": "#0b1c30",
+                        "surface-container-low": "#eff4ff",
+                        "surface-variant": "#d3e4fe",
+                        "on-secondary-fixed": "#002113",
+                        "secondary-fixed": "#6ffbbe",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "on-surface-variant": "#45474c",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#bcc7de",
+                        "surface-tint": "#545f73",
+                        "surface-dim": "#cbdbf5",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-background": "#0b1c30",
+                        "on-secondary-container": "#00714d",
+                        "on-primary-container": "#8590a6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#d8e2ff",
+                        "on-tertiary-container": "#4c8dff",
+                        "on-tertiary-fixed": "#001a42",
+                        "tertiary-container": "#00275b",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#f8f9ff",
+                        "background": "#f8f9ff",
+                        "secondary": "#10B981",
+                        "error": "#ba1a1a",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-primary-fixed": "#111c2d",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "0.5rem",
+                        "md": "1.5rem",
+                        "container-max": "1440px",
+                        "xl": "3rem",
+                        "sm": "1rem",
+                        "lg": "2rem",
+                        "base": "4px",
+                        "gutter": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Public Sans"],
+                        "headline-lg": ["Public Sans"],
+                        "body-md": ["Public Sans"],
+                        "label-md": ["Public Sans"],
+                        "label-lg": ["Public Sans"],
+                        "display": ["Public Sans"],
+                        "body-lg": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "label-lg": ["16px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #F8FAFC;
+        }
+        .sidebar-active {
+            border-left: 4px solid #10B981;
+            background-color: #1e293b;
+            color: white !important;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface" x-data="{ exportOpen: false, period: 'Monthly' }">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-[280px] flex flex-col bg-primary dark:bg-primary border-r border-outline-variant z-50">
+    <div class="p-lg flex flex-col gap-xs">
+        <h1 class="font-display text-display text-white">Inventory Pro</h1>
+        <p class="text-on-primary-container text-label-md">Enterprise Management</p>
+    </div>
+    <nav class="flex-1 px-sm mt-md space-y-1">
+        <a class="flex items-center gap-md px-md py-md font-label-lg text-label-lg text-on-primary-container hover:bg-primary-container hover:text-white transition-colors duration-200 cursor-pointer active:opacity-80" href="#">
+            <span class="material-symbols-outlined">dashboard</span>
+            Dashboard
+        </a>
+        <a class="flex items-center gap-md px-md py-md font-label-lg text-label-lg text-on-primary-container hover:bg-primary-container hover:text-white transition-colors duration-200 cursor-pointer active:opacity-80" href="#">
+            <span class="material-symbols-outlined">group</span>
+            User Management
+        </a>
+        <a class="flex items-center gap-md px-md py-md font-label-lg text-label-lg text-on-primary-container hover:bg-primary-container hover:text-white transition-colors duration-200 cursor-pointer active:opacity-80" href="#">
+            <span class="material-symbols-outlined">inventory_2</span>
+            Goods &amp; Recipients
+        </a>
+        <a class="flex items-center gap-md px-md py-md font-label-lg text-label-lg sidebar-active" href="#">
+            <span class="material-symbols-outlined">history</span>
+            Sales History
+        </a>
+    </nav>
+    <div class="p-md mt-auto">
+        <div class="flex items-center gap-md p-sm bg-primary-container rounded-lg border border-outline-variant">
+            <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                <img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHbrfjZDPoBDme0HBtPXI-PP0vircuRp0UORd3_xn1NCCf2rV2uy1AkhMek2ytHBXgkbBpnaOTxdPmJh3y5UY3ytyayA2CSvG4UVKvr8iqcwyd8rWTv9zk5MgOIpsxPs-eH2pRnM3JPZXDswdy1stQvdnvFw81TKb0M1DWQMtcW7jbuF53gNX5Tgf-nTV9nPonzonm4EHp3OXTMDkl7s3c06iLu1X6AxM2WBBoDMllUjDWSDFli1U3WdCcyjB8blp0u_j1lOlT"/>
+            </div>
+            <div class="overflow-hidden">
+                <p class="text-white font-label-md truncate">Admin User</p>
+                <p class="text-on-primary-container text-xs truncate">Manager Account</p>
+            </div>
+        </div>
+    </div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 left-[280px] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg shadow-sm z-40">
+    <div class="flex items-center gap-lg flex-1">
+        <div class="relative w-full max-w-md">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+            <input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:ring-offset-2 outline-none text-body-md" placeholder="Search transactions..." type="text"/>
+        </div>
+    </div>
+    <div class="flex items-center gap-lg">
+        <button class="flex items-center gap-xs px-md py-2 border-2 border-outline rounded-lg font-label-lg text-primary hover:bg-surface-container-low transition-all">
+            <span class="material-symbols-outlined">swap_horiz</span>
+            Role Switcher
+        </button>
+        <div class="flex items-center gap-md">
+            <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all relative">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+            </button>
+            <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all">
+                <span class="material-symbols-outlined">logout</span>
+            </button>
+        </div>
+    </div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[280px] mt-16 p-lg max-w-[1440px]">
+    <!-- Header Section -->
+    <div class="flex justify-between items-end mb-xl">
+        <div>
+            <nav class="flex text-on-surface-variant text-label-md mb-xs">
+                <span>Admin</span>
+                <span class="mx-2">/</span>
+                <span class="text-primary font-bold">Sales History</span>
+            </nav>
+            <h2 class="font-headline-lg text-headline-lg text-primary uppercase tracking-tight">Sales History</h2>
+        </div>
+        <div class="relative">
+            <button @click="exportOpen = !exportOpen" class="flex items-center gap-sm bg-secondary text-white px-lg py-3 rounded-lg font-label-lg hover:brightness-110 transition-all shadow-sm">
+                <span class="material-symbols-outlined">download</span>
+                Export Data
+                <span class="material-symbols-outlined">expand_more</span>
+            </button>
+            <div @click.away="exportOpen = false" class="absolute right-0 mt-xs w-48 bg-white border border-outline-variant shadow-xl rounded-lg z-50 overflow-hidden" x-show="exportOpen">
+                <a class="flex items-center gap-sm px-md py-md hover:bg-surface-container-low text-label-lg border-b border-outline-variant" href="#">
+                    <img class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARxikiYQ8YruaNvdamKD_1ykBWO1XLoIiZBcm2TbqXyk3j9hMO1iepNOVoyErfMPvnuxxDoFrc9RBElBPLfy6PdyHE8DyaspvcmK-H95pwq6nQU5e6ZByo1W6aMupPkycV8tlhSxlMXQ_OarniVBsq0Se7l8L6iiEAFgfHSRu1rMEFkF2pLHrbmvC0mkmK4Qae0Dg3AyXuB1TD0eiv5US9tTU9LQ9KDbUZq1mzGbr0QJormohuq6tt01B3zaMS2JUXfSjiSto6"/> Excel (.xlsx)
+                </a>
+                <a class="flex items-center gap-sm px-md py-md hover:bg-surface-container-low text-label-lg" href="#">
+                    <img class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKcUglAs6pIRPcPJ-ks-v_Z-6KYk7VaRlu3zeV9MZ-DwbrXLoAhhwvT0Kpj3YSkpgXzYHCEWNHcQY3WKcuxJxuWVetpxu0gZl6nSDZ1FMfjdtcrBImiI0N9Dj5RysccJpsG6MA0nioNDjqLr-vjQXZLYtRHpAVaHql_85cD-h0THMs8fOZGzxK0lbODfbFj9NgERN-v24iMP-w_GS-oRJOikHhlzWrhX_V56hJyRSBNtKvjZE9HOet-Qtt2usXxiE28OgVkCuL"/> PDF Document
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- Filters Section -->
+    <section class="bg-white border border-outline-variant rounded-xl p-md mb-lg shadow-sm flex flex-wrap items-end gap-md">
+        <div class="flex-1 min-w-[240px]">
+            <label class="block font-label-md text-on-surface-variant mb-xs">Date Range</label>
+            <div class="flex items-center border border-outline-variant rounded-lg bg-surface-container-lowest focus-within:ring-2 focus-within:ring-secondary-fixed-dim">
+                <input class="border-none bg-transparent flex-1 p-2 text-body-md focus:ring-0" type="date"/>
+                <span class="text-outline mx-1">to</span>
+                <input class="border-none bg-transparent flex-1 p-2 text-body-md focus:ring-0" type="date"/>
+            </div>
+        </div>
+        <div class="w-48">
+            <label class="block font-label-md text-on-surface-variant mb-xs">Time Period</label>
+            <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-body-md focus:ring-2 focus:ring-secondary" x-model="period">
+                <option>Daily</option>
+                <option>Weekly</option>
+                <option>Monthly</option>
+                <option>Annually</option>
+            </select>
+        </div>
+        <div class="w-64">
+            <label class="block font-label-md text-on-surface-variant mb-xs">User / Staff</label>
+            <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-body-md focus:ring-2 focus:ring-secondary">
+                <option>All Staff Members</option>
+                <option>Jonathan Smith</option>
+                <option>Sarah Parker</option>
+                <option>Michael Chen</option>
+                <option>Elena Rodriguez</option>
+            </select>
+        </div>
+        <button class="bg-primary text-white px-xl py-2 h-[48px] rounded-lg font-label-lg hover:bg-primary-container transition-colors">
+            Apply Filters
+        </button>
+        <button class="border border-outline px-md py-2 h-[48px] rounded-lg font-label-lg text-on-surface-variant hover:bg-surface-container-low">
+            Reset
+        </button>
+    </section>
+    <!-- KPI Row -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-lg">
+        <div class="bg-white border border-outline-variant rounded-xl p-lg shadow-sm overflow-hidden relative">
+            <div class="flex justify-between items-start mb-sm">
+                <div>
+                    <p class="text-on-surface-variant font-label-md uppercase tracking-wider">Total Revenue</p>
+                    <h3 class="font-display text-display text-primary mt-xs">$142,504.20</h3>
+                </div>
+                <span class="material-symbols-outlined text-secondary text-4xl">payments</span>
+            </div>
+            <div class="flex items-center gap-sm">
+<span class="text-secondary font-bold flex items-center">
+<span class="material-symbols-outlined">trending_up</span> 12.5%
+                    </span>
+                <span class="text-on-surface-variant text-label-md">vs last month</span>
+            </div>
+            <!-- Sparkline placeholder -->
+            <div class="absolute bottom-0 left-0 w-full h-1 bg-secondary opacity-20"></div>
+        </div>
+        <div class="bg-white border border-outline-variant rounded-xl p-lg shadow-sm overflow-hidden relative">
+            <div class="flex justify-between items-start mb-sm">
+                <div>
+                    <p class="text-on-surface-variant font-label-md uppercase tracking-wider">Total Transactions</p>
+                    <h3 class="font-display text-display text-primary mt-xs">1,842</h3>
+                </div>
+                <span class="material-symbols-outlined text-secondary text-4xl">receipt_long</span>
+            </div>
+            <div class="flex items-center gap-sm">
+<span class="text-secondary font-bold flex items-center">
+<span class="material-symbols-outlined">trending_up</span> 8.2%
+                    </span>
+                <span class="text-on-surface-variant text-label-md">vs last month</span>
+            </div>
+            <div class="absolute bottom-0 left-0 w-full h-1 bg-secondary opacity-20"></div>
+        </div>
+        <div class="bg-white border border-outline-variant rounded-xl p-lg shadow-sm overflow-hidden relative">
+            <div class="flex justify-between items-start mb-sm">
+                <div>
+                    <p class="text-on-surface-variant font-label-md uppercase tracking-wider">Avg Order Value</p>
+                    <h3 class="font-display text-display text-primary mt-xs">$77.36</h3>
+                </div>
+                <span class="material-symbols-outlined text-secondary text-4xl">analytics</span>
+            </div>
+            <div class="flex items-center gap-sm">
+<span class="text-error font-bold flex items-center">
+<span class="material-symbols-outlined">trending_down</span> 1.4%
+                    </span>
+                <span class="text-on-surface-variant text-label-md">vs last month</span>
+            </div>
+            <div class="absolute bottom-0 left-0 w-full h-1 bg-secondary opacity-20"></div>
+        </div>
+    </div>
+    <!-- Middle Section: Performance Chart -->
+    <section class="bg-white border border-outline-variant rounded-xl p-lg mb-lg shadow-sm">
+        <div class="flex justify-between items-center mb-lg">
+            <h4 class="font-headline-md text-headline-md text-primary">Sales Performance Over Time</h4>
+            <div class="flex gap-xs bg-surface-container-low p-1 rounded-lg">
+                <button :class="period === 'Daily' ? 'bg-white shadow-sm' : ''" @click="period = 'Daily'" class="px-md py-1 rounded font-label-md transition-all">Daily</button>
+                <button :class="period === 'Weekly' ? 'bg-white shadow-sm' : ''" @click="period = 'Weekly'" class="px-md py-1 rounded font-label-md transition-all">Weekly</button>
+                <button :class="period === 'Monthly' ? 'bg-white shadow-sm' : ''" @click="period = 'Monthly'" class="px-md py-1 rounded font-label-md transition-all">Monthly</button>
+            </div>
+        </div>
+        <div class="h-[400px] w-full">
+            <canvas id="salesPerformanceChart"></canvas>
+        </div>
+    </section>
+    <!-- Bottom Section: Detailed Table -->
+    <section class="bg-white border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+        <div class="px-lg py-md border-b border-outline-variant flex justify-between items-center">
+            <h4 class="font-headline-md text-headline-md text-primary">Transaction Logs</h4>
+            <div class="flex items-center gap-md">
+                <span class="text-label-md text-on-surface-variant">Showing 1-10 of 1,842</span>
+                <div class="flex gap-xs">
+                    <button class="p-2 border border-outline-variant rounded hover:bg-surface-container-low"><span class="material-symbols-outlined">chevron_left</span></button>
+                    <button class="p-2 border border-outline-variant rounded hover:bg-surface-container-low"><span class="material-symbols-outlined">chevron_right</span></button>
+                </div>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                <tr class="bg-primary text-white">
+                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">Date</th>
+                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">Transaction ID</th>
+                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">Item</th>
+                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">User</th>
+                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">Recipient</th>
+                    <th class="px-lg py-md font-label-lg uppercase tracking-wider text-right">Total Value</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant">
+                <tr class="hover:bg-surface-container-low transition-colors bg-white">
+                    <td class="px-lg py-md text-body-md font-bold">Oct 24, 2023, 14:32</td>
+                    <td class="px-lg py-md text-body-md text-primary font-mono">TXN-90421-XB</td>
+                    <td class="px-lg py-md text-body-md">Logitech MX Master 3S x 2</td>
+                    <td class="px-lg py-md text-body-md flex items-center gap-sm">
+                        <img alt="Staff" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2_rtDl5Jb5dtViJGV8If5IaPEjEvbT0h1Jfs8ajssCq9PbY4Cy0FrqjU9u-amb9uX3xvBeimt49x5P3ywtuo8_w1yPD34OKNIHSHcFVnmIijg72ih06_EUvF4tynL872017dOvFhvsfZXP0n0NnE0SmDxrwl91hNgWOn8BtiPEsu6hQyp3bFG__LMiquvvb7l5sxicnjlaPud7fr72-NjoDW5VAwnnlofzjdel6qnmY9_iaZ20U-guV1PSCoI8LH0AsFVlYkm"/>
+                        Jonathan Smith
+                    </td>
+                    <td class="px-lg py-md text-body-md">Corp Logistics Hub</td>
+                    <td class="px-lg py-md text-body-md text-right font-bold text-secondary">$198.00</td>
+                </tr>
+                <tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+                    <td class="px-lg py-md text-body-md font-bold">Oct 24, 2023, 11:15</td>
+                    <td class="px-lg py-md text-body-md text-primary font-mono">TXN-89302-LA</td>
+                    <td class="px-lg py-md text-body-md">Dell UltraSharp 27" x 1</td>
+                    <td class="px-lg py-md text-body-md flex items-center gap-sm">
+                        <img alt="Staff" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAt5nvn87lRPgfYpQyS9NTfxQO9SRIxDukS5hzlmj_nmW_J5iHFlKatUjrJPGxax2fWI3KnpVZ7fFScTy36NtfFlLjOR3yYnb0CBSlJfnZFCgfjFykOAKmGbNTmx5O2QhhwoJ8_clRGNr10EC9xuyeoKoy190dAVtUWTmfwvmbzxBRqo_h-o61naxMxtOZ0u9NkqXvd-8Xs0LV8TuJSgVc8iL6jZ3oONCZIj3Ac3-C8fC47c83phZ_KrQddcavYZVelt5RjyJXj"/>
+                        Sarah Parker
+                    </td>
+                    <td class="px-lg py-md text-body-md">Engineering Dept</td>
+                    <td class="px-lg py-md text-body-md text-right font-bold text-secondary">$649.00</td>
+                </tr>
+                <tr class="hover:bg-surface-container-low transition-colors bg-white">
+                    <td class="px-lg py-md text-body-md font-bold">Oct 23, 2023, 16:45</td>
+                    <td class="px-lg py-md text-body-md text-primary font-mono">TXN-88219-CZ</td>
+                    <td class="px-lg py-md text-body-md">Cable Management Kit x 15</td>
+                    <td class="px-lg py-md text-body-md flex items-center gap-sm">
+                        <img alt="Staff" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKh_DS_ibAEafWzoQKbVvmppEkNX_iBfhJFr8mVMSEnDmM30bIfjpnVEL70ojA5JkcoAKkqxbhbqgA1R4FozUwZDiTvS7pJG7XiVNteL8AxDc9q3GNfC_RneGim1MH_eGj925fZZZj6enbu5CujmSei85sWuRjLkfDE7Di_RCdD-sSw60lid9FoeQCqrDP7Tm2z8bZRSKsPE0YHgnOTvQJIXPiix0EJP8ND-5VxuZ3-CM2Nww7S_DVfvco3AafS_4pPQPuBBu3"/>
+                        Michael Chen
+                    </td>
+                    <td class="px-lg py-md text-body-md">Operations Team</td>
+                    <td class="px-lg py-md text-body-md text-right font-bold text-secondary">$225.00</td>
+                </tr>
+                <tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+                    <td class="px-lg py-md text-body-md font-bold">Oct 23, 2023, 09:12</td>
+                    <td class="px-lg py-md text-body-md text-primary font-mono">TXN-88112-PP</td>
+                    <td class="px-lg py-md text-body-md">Steelcase Leap Chair v2 x 4</td>
+                    <td class="px-lg py-md text-body-md flex items-center gap-sm">
+                        <img alt="Staff" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIvGuwkMNDYrUtTK3dynkPlKIzJkjukI_wk6qXmLC8RBHksYcx57DvObLm9Cw9wKwlIFat_-oqrBrUpY3itrat7FZz67nArw44c9h3dnVhWsWL5ddbtwHkSv9WHaRPatM--8cIhAVig5Uw6VzJDlC_OYDQ7CNveK0f5IWpfVZjOE7Hru6Hsvu8ATrrdeW_Dwjd-xsbNYzu4Ju9Hjy094vD4JRE2tvQcdhHe8bRXMST3U0yJ_9KQKCFOuJsSwJx5EO7dDjEwmHe"/>
+                        Elena Rodriguez
+                    </td>
+                    <td class="px-lg py-md text-body-md">HR Onboarding</td>
+                    <td class="px-lg py-md text-body-md text-right font-bold text-secondary">$3,840.00</td>
+                </tr>
+                <tr class="hover:bg-surface-container-low transition-colors bg-white">
+                    <td class="px-lg py-md text-body-md font-bold">Oct 22, 2023, 15:30</td>
+                    <td class="px-lg py-md text-body-md text-primary font-mono">TXN-87654-DD</td>
+                    <td class="px-lg py-md text-body-md">Mechanical Keyboard RGB x 10</td>
+                    <td class="px-lg py-md text-body-md flex items-center gap-sm">
+                        <img alt="Staff" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7QUrTTm_vwX_ZhQVCibGodWUKvhgi0jeiqIuoVnrfaILjo4hmxE5DRj6nkCnB6zvORbnwb9f0i1KaDTajng0833em5a0X3sYlwhSiLo0qrfKVQB6ZE9REsgG3T6lynTWe6-0yfXK_QR0s81HhsXf47PbL2T78TF5pl2xfVsE9Zf8jnW7-ApsBLljdoWVU-NtuXa6rAFjX2Op5IqLFTijBqsgF1OKkOxGI-fVZ-Wy6ANpY6NNmA7XBpyuEDRn1IY3swBsD0Pb3"/>
+                        Jonathan Smith
+                    </td>
+                    <td class="px-lg py-md text-body-md">IT Support</td>
+                    <td class="px-lg py-md text-body-md text-right font-bold text-secondary">$1,200.00</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="p-lg bg-surface-container-lowest flex justify-center">
+            <button class="text-primary font-label-lg flex items-center gap-sm hover:underline">
+                Load More Transactions
+                <span class="material-symbols-outlined">expand_more</span>
+            </button>
+        </div>
+    </section>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('salesPerformanceChart').getContext('2d');
+
+        // Create Gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 42000, 48000],
+                    borderColor: '#10B981',
+                    borderWidth: 4,
+                    fill: true,
+                    backgroundColor: gradient,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#FFFFFF',
+                    pointBorderColor: '#10B981',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#091426',
+                        titleFont: { family: 'Public Sans', size: 14 },
+                        bodyFont: { family: 'Public Sans', size: 16, weight: 'bold' },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#E2E8F0',
+                            borderDash: [5, 5]
+                        },
+                        ticks: {
+                            color: '#64748B',
+                            font: { family: 'Public Sans', size: 12 },
+                            callback: function(value) { return '$' + value.toLocaleString(); }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#64748B',
+                            font: { family: 'Public Sans', size: 12 }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+</body></html>
