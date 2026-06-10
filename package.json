@@ -17,7 +17,6 @@
         "vite": "^8.0.0"
     },
     "dependencies": {
-        "@fontsource-variable/material-symbols-outlined": "^5.2.45",
         "@fontsource/public-sans": "^5.2.7"
     }
 }

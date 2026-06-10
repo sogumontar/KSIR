@@ -1,8 +1,4 @@
 {
-  "node_modules/@fontsource-variable/material-symbols-outlined/files/material-symbols-outlined-latin-wght-normal.woff2": {
-    "file": "assets/material-symbols-outlined-latin-wght-normal-Cqg85hDe.woff2",
-    "src": "node_modules/@fontsource-variable/material-symbols-outlined/files/material-symbols-outlined-latin-wght-normal.woff2"
-  },
   "node_modules/@fontsource/public-sans/files/public-sans-latin-400-normal.woff": {
     "file": "assets/public-sans-latin-400-normal-SBbinRkI.woff",
     "src": "node_modules/@fontsource/public-sans/files/public-sans-latin-400-normal.woff"
@@ -100,7 +96,7 @@
     "src": "node_modules/@fontsource/public-sans/files/public-sans-vietnamese-800-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BbJ3wnfe.css",
+    "file": "assets/app-C74V496j.css",
     "name": "app",
     "names": [
       "app.css"
@@ -131,8 +127,7 @@
       "assets/public-sans-latin-ext-800-normal-BFRSyk9K.woff2",
       "assets/public-sans-latin-ext-800-normal-COj-CKlZ.woff",
       "assets/public-sans-latin-800-normal-Cymo4W0O.woff2",
-      "assets/public-sans-latin-800-normal-qgH1Oyzx.woff",
-      "assets/material-symbols-outlined-latin-wght-normal-Cqg85hDe.woff2"
+      "assets/public-sans-latin-800-normal-qgH1Oyzx.woff"
     ]
   },
   "resources/js/app.js": {
