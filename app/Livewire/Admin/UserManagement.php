@@ -28,7 +28,7 @@ class UserManagement extends Component
     public string $editRole = 'staff';
     public bool $editStatus = true;
     public string $editPassword = '';
-    public string $editPasswordConfirmation = '';
+    public string $editPassword_confirmation = '';
     public $editPhoto;
     public ?string $existingPhoto = null;
 
@@ -39,7 +39,7 @@ class UserManagement extends Component
 
     public function openAdd()
     {
-        $this->reset(['editingUserId', 'editName', 'editEmail', 'editPhone', 'editRole', 'editStatus', 'editPassword', 'editPasswordConfirmation', 'editPhoto', 'existingPhoto']);
+        $this->reset(['editingUserId', 'editName', 'editEmail', 'editPhone', 'editRole', 'editStatus', 'editPassword', 'editPassword_confirmation', 'editPhoto', 'existingPhoto']);
         $this->editRole = 'staff';
         $this->editStatus = true;
         $this->showEditSidebar = true;
@@ -55,7 +55,7 @@ class UserManagement extends Component
         $this->editRole = $user->is_admin ? 'admin' : 'staff';
         $this->editStatus = $user->status === 'active';
         $this->editPassword = '';
-        $this->editPasswordConfirmation = '';
+        $this->editPassword_confirmation = '';
         $this->existingPhoto = $user->photo_path;
         $this->editPhoto = null;
         $this->showEditSidebar = true;
@@ -77,10 +77,10 @@ class UserManagement extends Component
 
         if ($isAdd) {
             $rules['editPassword'] = 'required|min:8|confirmed';
-            $rules['editPasswordConfirmation'] = 'required';
+            $rules['editPassword_confirmation'] = 'required';
         } else {
             $rules['editPassword'] = 'nullable|min:8|confirmed';
-            $rules['editPasswordConfirmation'] = 'nullable';
+            $rules['editPassword_confirmation'] = 'nullable';
         }
 
         $this->validate($rules);
@@ -152,6 +152,19 @@ class UserManagement extends Component
         $this->roleFilter = '';
         $this->statusFilter = '';
         $this->resetPage();
+    }
+
+    protected function validationAttributes()
+    {
+        return [
+            'editName' => 'name',
+            'editEmail' => 'email',
+            'editPhone' => 'phone number',
+            'editRole' => 'role',
+            'editPassword' => 'password',
+            'editPassword_confirmation' => 'password confirmation',
+            'editPhoto' => 'photo',
+        ];
     }
 
     public function render()

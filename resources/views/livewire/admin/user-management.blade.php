@@ -228,8 +228,8 @@
                     </div>
                     <div class="space-y-base">
                         <label class="block font-label-md text-on-surface">Confirm Password</label>
-                        <input wire:model="editPasswordConfirmation" class="w-full h-12 px-4 border border-outline rounded-lg focus:ring-2 focus:ring-secondary font-body-md" type="password" autocomplete="new-password">
-                        @error('editPasswordConfirmation') <span class="text-error text-sm">{{ $message }}</span> @enderror
+                        <input wire:model="editPassword_confirmation" class="w-full h-12 px-4 border border-outline rounded-lg focus:ring-2 focus:ring-secondary font-body-md" type="password" autocomplete="new-password">
+                        @error('editPassword_confirmation') <span class="text-error text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <hr class="border-outline-variant my-xl">

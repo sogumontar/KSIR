@@ -19,7 +19,7 @@ class Profile extends Component
 
     public string $currentPassword = '';
     public string $newPassword = '';
-    public string $newPasswordConfirmation = '';
+    public string $newPassword_confirmation = '';
 
     public bool $showPasswordForm = false;
 
@@ -65,15 +65,26 @@ class Profile extends Component
         $this->validate([
             'currentPassword' => 'required|current_password',
             'newPassword' => 'required|min:8|confirmed',
-            'newPasswordConfirmation' => 'required',
+            'newPassword_confirmation' => 'required',
         ]);
 
         auth()->user()->update([
             'password' => $this->newPassword,
         ]);
 
-        $this->reset(['currentPassword', 'newPassword', 'newPasswordConfirmation', 'showPasswordForm']);
+        $this->reset(['currentPassword', 'newPassword', 'newPassword_confirmation', 'showPasswordForm']);
         session()->flash('message', 'Password updated successfully.');
+    }
+
+    protected function validationAttributes()
+    {
+        return [
+            'phoneNumber' => 'phone number',
+            'photo' => 'photo',
+            'currentPassword' => 'current password',
+            'newPassword' => 'new password',
+            'newPassword_confirmation' => 'password confirmation',
+        ];
     }
 
     public function render()

@@ -115,8 +115,8 @@
                 </div>
                 <div class="mt-4">
                     <label class="form-label">Confirm New Password <span class="text-error">*</span></label>
-                    <input wire:model="newPasswordConfirmation" class="form-input bg-white w-full" type="password" autocomplete="new-password">
-                    @error('newPasswordConfirmation') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
+                    <input wire:model="newPassword_confirmation" class="form-input bg-white w-full" type="password" autocomplete="new-password">
+                    @error('newPassword_confirmation') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
                 </div>
                 <div class="flex justify-end mt-6">
                     <button type="submit" class="btn-primary gap-2">
