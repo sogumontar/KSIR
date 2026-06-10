@@ -3,7 +3,8 @@
     "allow": [
       "Bash(php *)",
       "Agent(Explore)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "WebFetch(fonts.googleapis.com)"
     ]
   },
   "$version": 4

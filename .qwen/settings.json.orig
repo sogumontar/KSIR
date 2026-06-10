@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(php *)",
-      "Agent(Explore)"
+      "Agent(Explore)",
+      "Bash(npm uninstall *)"
     ]
   },
   "$version": 4
