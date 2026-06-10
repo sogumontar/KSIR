@@ -1,17 +1,17 @@
-<div x-data="{ 
-    showAddModal: @entangle('showAddModal'), 
-    showEditModal: @entangle('showEditModal'), 
-    showViewModal: @entangle('showViewModal'), 
-    showDeleteModal: @entangle('showDeleteModal') 
+<div x-data="{
+    showAddModal: @entangle('showAddModal'),
+    showEditModal: @entangle('showEditModal'),
+    showViewModal: @entangle('showViewModal'),
+    showDeleteModal: @entangle('showDeleteModal')
 }">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <div>
             <h2 class="font-headline-lg text-headline-lg text-slate-900 m-0">Goods Inventory</h2>
             <p class="text-sm text-slate-500 mt-1">Manage physical goods, prices, and stock levels.</p>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="relative w-64">
+        <div class="flex items-center gap-4 flex-wrap">
+            <div class="relative w-full sm:w-64">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
                 <input wire:model.live.debounce.300ms="search" class="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all" placeholder="Search goods...">
             </div>
@@ -32,12 +32,14 @@
     <!-- Data Table Card -->
     <div class="card-surface overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse min-w-[640px]">
                 <thead>
                     <tr>
+                        <th class="table-header font-label-lg text-label-lg">Image</th>
                         <th class="table-header font-label-lg text-label-lg">Name</th>
                         <th class="table-header font-label-lg text-label-lg">Description</th>
                         <th class="table-header font-label-lg text-label-lg text-right">Unit Price</th>
+                        <th class="table-header font-label-lg text-label-lg">Unit Type</th>
                         <th class="table-header font-label-lg text-label-lg text-right">Stock Level</th>
                         <th class="table-header font-label-lg text-label-lg text-center">Actions</th>
                     </tr>
@@ -45,9 +47,25 @@
                 <tbody class="font-body-md text-body-md text-slate-700">
                     @forelse($goods as $good)
                         <tr class="table-row-zebra border-b border-slate-200">
+                            <td class="table-cell">
+                                @if($good->image)
+                                    <img src="{{ asset('storage/' . $good->image) }}" alt="{{ $good->name }}" class="w-10 h-10 rounded object-cover border border-slate-200">
+                                @else
+                                    <div class="w-10 h-10 rounded bg-slate-100 border border-slate-200 flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-slate-400 text-lg">image</span>
+                                    </div>
+                                @endif
+                            </td>
                             <td class="table-cell font-semibold text-slate-900">{{ $good->name }}</td>
                             <td class="table-cell max-w-xs truncate">{{ $good->description ?? '-' }}</td>
-                            <td class="table-cell text-right">${{ number_format($good->price, 2) }}</td>
+                            <td class="table-cell text-right">Rp{{ number_format($good->price, 0) }}</td>
+                            <td class="table-cell">
+                                @if($good->unit_type)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">{{ ucfirst($good->unit_type) }}</span>
+                                @else
+                                    <span class="text-slate-400">-</span>
+                                @endif
+                            </td>
                             <td class="table-cell text-right">
                                 @if($good->stock == 0)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">Out of Stock</span>
@@ -73,7 +91,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center p-12 text-slate-500">
+                            <td colspan="7" class="text-center p-12 text-slate-500">
                                 <span class="material-symbols-outlined text-4xl text-slate-300 mb-2 block">layers</span>
                                 No inventory items found. Add some goods to get started!
                             </td>
@@ -84,7 +102,7 @@
         </div>
 
         <!-- Pagination -->
-        <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-slate-600 font-label-md text-label-md">
+        <div class="p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between text-slate-600 font-label-md text-label-md gap-sm">
             <span>Showing {{ $goods->firstItem() ?? 0 }} to {{ $goods->lastItem() ?? 0 }} of {{ $goods->total() }} goods</span>
             <div class="flex gap-2">
                 {{ $goods->links() }}
@@ -113,11 +131,11 @@
                     <input type="text" wire:model="name" class="form-input bg-white" placeholder="e.g., MacBook Pro M3 Max">
                     @error('name') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-4">
                     <!-- Price -->
                     <div>
-                        <label class="form-label">Price ($)</label>
+                        <label class="form-label">Price (Rp)</label>
                         <input type="number" step="0.01" min="0" wire:model="price" class="form-input bg-white" placeholder="0.00">
                         @error('price') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                     </div>
@@ -129,11 +147,55 @@
                     </div>
                 </div>
 
+                <!-- Unit Type -->
+                <div>
+                    <label class="form-label">Unit Type</label>
+                    <select wire:model="unitType" class="form-input bg-white appearance-none w-full">
+                        <option value="">-- Select Unit Type --</option>
+                        <option value="pcs">Pieces (pcs)</option>
+                        <option value="box">Box</option>
+                        <option value="pack">Pack</option>
+                        <option value="set">Set</option>
+                        <option value="kg">Kilogram (kg)</option>
+                        <option value="liter">Liter</option>
+                        <option value="bundle">Bundle</option>
+                        <option value="roll">Roll</option>
+                        <option value="drum">Drum</option>
+                        <option value="unit">Unit</option>
+                    </select>
+                    @error('unitType') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
                 <!-- Description -->
                 <div>
                     <label class="form-label">Description</label>
                     <textarea wire:model="description" class="form-input bg-white min-h-[100px] py-2" placeholder="Optional product description..."></textarea>
                     @error('description') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <!-- Image -->
+                <div>
+                    <label class="form-label">Product Image</label>
+                    @if($imageFile)
+                        <div class="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg mb-3">
+                            <img src="{{ $imageFile->temporaryUrl() }}" alt="Preview" class="w-16 h-16 rounded object-cover border border-green-300">
+                            <div class="flex-1">
+                                <span class="text-sm text-green-800 font-medium">{{ $imageFile->getClientOriginalName() }}</span>
+                                <span class="text-xs text-green-600 ml-2">{{ number_format($imageFile->getSize() / 1024, 1) }} KB</span>
+                            </div>
+                            <button wire:click="$set('imageFile', null)" class="text-red-500 hover:text-red-700">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                    @endif
+                    <div x-show="!$wire.imageFile" class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition-colors cursor-pointer"
+                         onclick="this.querySelector('input[type=file]').click()">
+                        <span class="material-symbols-outlined text-3xl text-slate-400 mb-1">add_photo_alternate</span>
+                        <p class="font-label-md text-slate-700 mb-1">Click to upload image</p>
+                        <p class="text-sm text-slate-500">JPG, PNG, or WebP (max. 2MB)</p>
+                        <input accept=".jpg,.jpeg,.png,.webp" class="hidden" type="file" wire:model="imageFile">
+                    </div>
+                    @error('imageFile') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                 </div>
             </div>
             <!-- Modal Footer -->
@@ -168,11 +230,11 @@
                     <input type="text" wire:model="editName" class="form-input bg-white" placeholder="e.g., MacBook Pro M3 Max">
                     @error('editName') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-4">
                     <!-- Price -->
                     <div>
-                        <label class="form-label">Price ($)</label>
+                        <label class="form-label">Price (Rp)</label>
                         <input type="number" step="0.01" min="0" wire:model="editPrice" class="form-input bg-white" placeholder="0.00">
                         @error('editPrice') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                     </div>
@@ -184,11 +246,66 @@
                     </div>
                 </div>
 
+                <!-- Unit Type -->
+                <div>
+                    <label class="form-label">Unit Type</label>
+                    <select wire:model="editUnitType" class="form-input bg-white appearance-none w-full">
+                        <option value="">-- Select Unit Type --</option>
+                        <option value="pcs">Pieces (pcs)</option>
+                        <option value="box">Box</option>
+                        <option value="pack">Pack</option>
+                        <option value="set">Set</option>
+                        <option value="kg">Kilogram (kg)</option>
+                        <option value="liter">Liter</option>
+                        <option value="bundle">Bundle</option>
+                        <option value="roll">Roll</option>
+                        <option value="drum">Drum</option>
+                        <option value="unit">Unit</option>
+                    </select>
+                    @error('editUnitType') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
                 <!-- Description -->
                 <div>
                     <label class="form-label">Description</label>
                     <textarea wire:model="editDescription" class="form-input bg-white min-h-[100px] py-2" placeholder="Optional product description..."></textarea>
                     @error('editDescription') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <!-- Image -->
+                <div>
+                    <label class="form-label">Product Image</label>
+                    @if($existingImage)
+                        <div class="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg mb-3">
+                            <img src="{{ asset('storage/' . $existingImage) }}" alt="Current image" class="w-16 h-16 rounded object-cover border border-blue-300">
+                            <div class="flex-1">
+                                <span class="text-sm text-blue-800 font-medium">Current image</span>
+                            </div>
+                            <button wire:click="$set('existingImage', null)" class="text-red-500 hover:text-red-700" title="Remove current image">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                    @endif
+                    @if($editImageFile)
+                        <div class="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg mb-3">
+                            <img src="{{ $editImageFile->temporaryUrl() }}" alt="New preview" class="w-16 h-16 rounded object-cover border border-green-300">
+                            <div class="flex-1">
+                                <span class="text-sm text-green-800 font-medium">{{ $editImageFile->getClientOriginalName() }}</span>
+                                <span class="text-xs text-green-600 ml-2">{{ number_format($editImageFile->getSize() / 1024, 1) }} KB</span>
+                            </div>
+                            <button wire:click="$set('editImageFile', null)" class="text-red-500 hover:text-red-700">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                    @endif
+                    <div x-show="!$wire.editImageFile && !$wire.existingImage" class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition-colors cursor-pointer"
+                         onclick="this.querySelector('input[type=file]').click()">
+                        <span class="material-symbols-outlined text-3xl text-slate-400 mb-1">add_photo_alternate</span>
+                        <p class="font-label-md text-slate-700 mb-1">Click to upload image</p>
+                        <p class="text-sm text-slate-500">JPG, PNG, or WebP (max. 2MB)</p>
+                        <input accept=".jpg,.jpeg,.png,.webp" class="hidden" type="file" wire:model="editImageFile">
+                    </div>
+                    @error('editImageFile') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                 </div>
             </div>
             <!-- Modal Footer -->
@@ -215,19 +332,27 @@
                 </button>
             </div>
             <div class="p-8 space-y-4">
+                @if(data_get($viewRecord, 'image'))
+                    <div class="flex justify-center mb-4">
+                        <img src="{{ asset('storage/' . data_get($viewRecord, 'image')) }}" alt="{{ data_get($viewRecord, 'name') }}" class="w-32 h-32 rounded-lg object-cover border border-slate-200 shadow-sm">
+                    </div>
+                @endif
                 <div class="grid grid-cols-2 gap-4 text-body-md">
                     <div class="font-semibold text-slate-500">Name:</div>
                     <div class="text-slate-950 font-medium">{{ data_get($viewRecord, 'name') }}</div>
-                    
+
                     <div class="font-semibold text-slate-500">Unit Price:</div>
-                    <div class="text-slate-950 font-bold">${{ number_format((float) data_get($viewRecord, 'price', 0), 2) }}</div>
-                    
+                    <div class="text-slate-950 font-bold">Rp{{ number_format((float) data_get($viewRecord, 'price', 0), 0) }}</div>
+
+                    <div class="font-semibold text-slate-500">Unit Type:</div>
+                    <div class="text-slate-950 font-medium">{{ data_get($viewRecord, 'unitType') }}</div>
+
                     <div class="font-semibold text-slate-500">Current Stock:</div>
                     <div class="text-slate-950 font-medium">{{ data_get($viewRecord, 'stock') }} units</div>
-                    
+
                     <div class="font-semibold text-slate-500">Created At:</div>
                     <div class="text-slate-950">{{ data_get($viewRecord, 'created') }}</div>
-                    
+
                     <div class="col-span-2 mt-2 pt-2 border-t border-slate-100">
                         <div class="font-semibold text-slate-500 mb-1">Description:</div>
                         <div class="text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100 min-h-[60px]">{{ data_get($viewRecord, 'description') }}</div>

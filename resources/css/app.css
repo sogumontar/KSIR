@@ -9,6 +9,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Alpine.js cloak (must be before any x-cloak elements render) ─── */
+[x-cloak] {
+    display: none !important;
+}
+
 /* ─── Body default ─── */
 body {
     font-family: 'Public Sans', sans-serif;
@@ -126,7 +131,6 @@ body {
     color: white;
     font-weight: 600;
     padding: 16px;
-    text-align: left;
 }
 .table-cell {
     padding: 16px;

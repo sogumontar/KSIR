@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php *)",
+      "Agent(Explore)"
+    ]
+  },
+  "$version": 4
+}

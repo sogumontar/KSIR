@@ -4,6 +4,7 @@ namespace App\Livewire\User;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use App\Models\Good;
@@ -12,7 +13,7 @@ use App\Models\Good;
 #[Title('Goods Inventory - Inventory Pro')]
 class Inventory extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public bool $showAddModal = false;
     public bool $showEditModal = false;
@@ -24,14 +25,19 @@ class Inventory extends Component
     public string $name = '';
     public float $price = 0.0;
     public int $stock = 0;
+    public string $unitType = '';
     public string $description = '';
+    public $imageFile;
 
     // Edit form properties
     public ?int $editGoodId = null;
     public string $editName = '';
     public float $editPrice = 0.0;
     public int $editStock = 0;
+    public string $editUnitType = '';
     public string $editDescription = '';
+    public $editImageFile;
+    public ?string $existingImage = null;
 
     // View record details
     public array $viewRecord = [];
@@ -47,7 +53,7 @@ class Inventory extends Component
 
     public function openAdd()
     {
-        $this->reset(['name', 'price', 'stock', 'description']);
+        $this->reset(['name', 'price', 'stock', 'unitType', 'description', 'imageFile']);
         $this->showAddModal = true;
     }
 
@@ -57,19 +63,28 @@ class Inventory extends Component
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'unitType' => 'required|string|max:50',
             'description' => 'nullable|string',
+            'imageFile' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        $imagePath = null;
+        if ($this->imageFile) {
+            $imagePath = $this->imageFile->store('goods', 'public');
+        }
 
         Good::create([
             'user_id' => auth()->id(),
             'name' => $this->name,
             'price' => $this->price,
             'stock' => $this->stock,
+            'unit_type' => $this->unitType,
             'description' => $this->description,
+            'image' => $imagePath,
         ]);
 
         $this->showAddModal = false;
-        $this->reset(['name', 'price', 'stock', 'description']);
+        $this->reset(['name', 'price', 'stock', 'unitType', 'description', 'imageFile']);
         session()->flash('message', 'Good created successfully.');
     }
 
@@ -80,7 +95,10 @@ class Inventory extends Component
         $this->editName = $good->name;
         $this->editPrice = (float) $good->price;
         $this->editStock = (int) $good->stock;
+        $this->editUnitType = $good->unit_type ?? '';
         $this->editDescription = $good->description ?? '';
+        $this->existingImage = $good->image;
+        $this->editImageFile = null;
         $this->showEditModal = true;
     }
 
@@ -90,16 +108,32 @@ class Inventory extends Component
             'editName' => 'required|string|max:255',
             'editPrice' => 'required|numeric|min:0',
             'editStock' => 'required|integer|min:0',
+            'editUnitType' => 'required|string|max:50',
             'editDescription' => 'nullable|string',
+            'editImageFile' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         if ($this->editGoodId) {
             $good = Good::where('user_id', auth()->id())->findOrFail($this->editGoodId);
+
+            $imagePath = $good->image;
+            if ($this->editImageFile) {
+                if ($imagePath) {
+                    \Storage::disk('public')->delete($imagePath);
+                }
+                $imagePath = $this->editImageFile->store('goods', 'public');
+            } elseif (!$this->existingImage && $imagePath) {
+                \Storage::disk('public')->delete($imagePath);
+                $imagePath = null;
+            }
+
             $good->update([
                 'name' => $this->editName,
                 'price' => $this->editPrice,
                 'stock' => $this->editStock,
+                'unit_type' => $this->editUnitType,
                 'description' => $this->editDescription,
+                'image' => $imagePath,
             ]);
         }
 
@@ -114,7 +148,9 @@ class Inventory extends Component
             'name' => $good->name,
             'price' => (float) $good->price,
             'stock' => (int) $good->stock,
+            'unitType' => $good->unit_type ?? '-',
             'description' => $good->description ?? '-',
+            'image' => $good->image,
             'created' => $good->created_at->format('M d, Y H:i'),
         ];
         $this->showViewModal = true;

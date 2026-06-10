@@ -7,7 +7,7 @@
     <title>{{ $title ?? 'Login | Inventory Pro' }}</title>
     @vite(['resources/css/app.css'])
 </head>
-<body class="min-h-screen flex flex-col justify-center items-center p-gutter">
+<body class="min-h-screen flex flex-col justify-center items-center p-sm md:p-gutter">
     {{ $slot }}
 
     <!-- Visual Background Element (Subtle) -->

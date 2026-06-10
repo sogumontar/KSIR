@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use App\Models\User;
@@ -12,7 +13,7 @@ use App\Models\User;
 #[Title('User Management - Inventory Pro')]
 class UserManagement extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public string $search = '';
     public string $roleFilter = '';
@@ -26,6 +27,10 @@ class UserManagement extends Component
     public string $editPhone = '';
     public string $editRole = 'staff';
     public bool $editStatus = true;
+    public string $editPassword = '';
+    public string $editPasswordConfirmation = '';
+    public $editPhoto;
+    public ?string $existingPhoto = null;
 
     public function updatingSearch()
     {
@@ -34,7 +39,9 @@ class UserManagement extends Component
 
     public function openAdd()
     {
-        $this->reset(['editingUserId', 'editName', 'editEmail', 'editPhone', 'editRole', 'editStatus']);
+        $this->reset(['editingUserId', 'editName', 'editEmail', 'editPhone', 'editRole', 'editStatus', 'editPassword', 'editPasswordConfirmation', 'editPhoto', 'existingPhoto']);
+        $this->editRole = 'staff';
+        $this->editStatus = true;
         $this->showEditSidebar = true;
     }
 
@@ -44,38 +51,84 @@ class UserManagement extends Component
         $this->editingUserId = $userId;
         $this->editName = $user->name;
         $this->editEmail = $user->email;
-        $this->editPhone = $user->phone ?? '';
+        $this->editPhone = $user->phone_number ?? '';
         $this->editRole = $user->is_admin ? 'admin' : 'staff';
-        $this->editStatus = true; // placeholder
+        $this->editStatus = $user->status === 'active';
+        $this->editPassword = '';
+        $this->editPasswordConfirmation = '';
+        $this->existingPhoto = $user->photo_path;
+        $this->editPhoto = null;
         $this->showEditSidebar = true;
     }
 
     public function saveEdit()
     {
-        $this->validate([
-            'editName' => 'required|string|max:255',
-            'editEmail' => 'required|email|max:255',
-        ]);
+        $isAdd = $this->editingUserId === null;
 
-        if ($this->editingUserId) {
-            $user = User::findOrFail($this->editingUserId);
-            $user->update([
-                'name' => $this->editName,
-                'email' => $this->editEmail,
-                'is_admin' => $this->editRole === 'admin',
-            ]);
+        $rules = [
+            'editName' => 'required|string|max:255',
+            'editEmail' => ['required', 'email', 'max:255', $isAdd
+                ? 'unique:users,email'
+                : 'unique:users,email,' . $this->editingUserId],
+            'editPhone' => 'nullable|string|max:20',
+            'editRole' => 'required|in:admin,staff',
+            'editPhoto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ];
+
+        if ($isAdd) {
+            $rules['editPassword'] = 'required|min:8|confirmed';
+            $rules['editPasswordConfirmation'] = 'required';
         } else {
+            $rules['editPassword'] = 'nullable|min:8|confirmed';
+            $rules['editPasswordConfirmation'] = 'nullable';
+        }
+
+        $this->validate($rules);
+
+        $photoPath = $this->existingPhoto;
+        if ($this->editPhoto) {
+            if ($photoPath) {
+                \Storage::disk('public')->delete($photoPath);
+            }
+            $photoPath = $this->editPhoto->store('users', 'public');
+        } elseif (!$this->existingPhoto && $photoPath) {
+            \Storage::disk('public')->delete($photoPath);
+            $photoPath = null;
+        }
+
+        $statusString = $this->editStatus ? 'active' : 'inactive';
+        $isAdmin = $this->editRole === 'admin';
+
+        if ($isAdd) {
             User::create([
                 'name' => $this->editName,
                 'email' => $this->editEmail,
-                'password' => bcrypt('password'), // default password for new users
-                'is_admin' => $this->editRole === 'admin',
+                'phone_number' => $this->editPhone,
+                'password' => $this->editPassword,
+                'is_admin' => $isAdmin,
+                'status' => $statusString,
+                'photo_path' => $photoPath,
             ]);
+        } else {
+            $user = User::findOrFail($this->editingUserId);
+            $updateData = [
+                'name' => $this->editName,
+                'email' => $this->editEmail,
+                'phone_number' => $this->editPhone,
+                'is_admin' => $isAdmin,
+                'status' => $statusString,
+                'photo_path' => $photoPath,
+            ];
+
+            if ($this->editPassword) {
+                $updateData['password'] = $this->editPassword;
+            }
+
+            $user->update($updateData);
         }
 
         $this->showEditSidebar = false;
         $this->editingUserId = null;
-        $this->reset(['editName', 'editEmail', 'editPhone', 'editRole']);
     }
 
     public function cancelEdit()
@@ -86,7 +139,11 @@ class UserManagement extends Component
 
     public function deleteUser(int $userId)
     {
-        User::findOrFail($userId)->delete();
+        $user = User::findOrFail($userId);
+        if ($user->photo_path) {
+            \Storage::disk('public')->delete($user->photo_path);
+        }
+        $user->delete();
     }
 
     public function resetFilters()
@@ -101,6 +158,9 @@ class UserManagement extends Component
     {
         $users = User::query()
             ->when($this->search, fn($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhere('email', 'like', '%'.$this->search.'%'))
+            ->when($this->roleFilter === 'admin', fn($q) => $q->where('is_admin', true))
+            ->when($this->roleFilter === 'staff', fn($q) => $q->where('is_admin', false))
+            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
             ->latest()
             ->paginate(10);
 

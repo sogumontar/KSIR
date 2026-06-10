@@ -4,6 +4,7 @@ namespace App\Livewire\User;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -11,10 +12,10 @@ use App\Models\Transaction;
 use App\Models\Good;
 
 #[Layout('components.layouts.user')]
-#[Title('Goods & Recipients - Inventory Pro')]
+#[Title('Sales Record - Inventory Pro')]
 class Goods extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public bool $showAddModal = false;
     public bool $showEditModal = false;
@@ -26,8 +27,10 @@ class Goods extends Component
     public ?int $goodId = null;
     public int $qty = 0;
     public float $price = 0.0;
+    public float $sellPrice = 0.0;
     public string $recipientId = '';
     public string $status = 'pending';
+    public string $transactionDate = '';
     public string $dueDate = '';
     public $proofFile;
 
@@ -36,9 +39,13 @@ class Goods extends Component
     public string $editItemName = '';
     public int $editQty = 0;
     public float $editPrice = 0.0;
+    public float $editSellPrice = 0.0;
     public string $editRecipientId = '';
     public string $editStatus = 'pending';
+    public string $editTransactionDate = '';
     public string $editDueDate = '';
+    public $editProofFile;
+    public ?string $existingProof = null;
 
     // View record
     public array $viewRecord = [];
@@ -95,7 +102,8 @@ class Goods extends Component
 
     public function openAdd()
     {
-        $this->reset(['goodId', 'qty', 'price', 'recipientId', 'status', 'dueDate', 'proofFile']);
+        $this->reset(['goodId', 'qty', 'price', 'sellPrice', 'recipientId', 'status', 'transactionDate', 'dueDate', 'proofFile']);
+        $this->transactionDate = now()->format('Y-m-d');
         $this->showAddModal = true;
     }
 
@@ -105,23 +113,38 @@ class Goods extends Component
             $good = Good::where('user_id', auth()->id())->find($value);
             if ($good) {
                 $this->price = (float) $good->price;
+                $this->sellPrice = (float) $good->price;
                 if ($this->qty <= 0) {
                     $this->qty = 1;
                 }
             }
         } else {
             $this->price = 0.0;
+            $this->sellPrice = 0.0;
         }
     }
 
     public function saveRecord()
     {
-        $this->validate([
+        $requiresProof = in_array($this->status, ['delivered', 'loan']);
+
+        $rules = [
             'goodId' => 'required|exists:goods,id',
             'qty' => 'required|integer|min:1',
+            'sellPrice' => 'required|numeric|min:0',
             'recipientId' => 'required|string|max:255',
             'status' => 'required|string|max:50',
-        ]);
+            'transactionDate' => 'required|date',
+            'proofFile' => $requiresProof
+                ? 'required|file|mimes:pdf,jpg,jpeg,png|max:10240'
+                : 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ];
+
+        if ($requiresProof && !$this->proofFile) {
+            $this->addError('proofFile', 'Proof of delivery is required when status is delivered or loan.');
+        }
+
+        $this->validate($rules);
 
         $good = Good::where('user_id', auth()->id())->findOrFail($this->goodId);
 
@@ -134,27 +157,35 @@ class Goods extends Component
         // Deduct stock
         $good->decrement('stock', $this->qty);
 
+        $proofPath = null;
+        if ($this->proofFile) {
+            $proofPath = $this->proofFile->store('proofs', 'public');
+        }
+
         Transaction::create([
             'user_id' => auth()->id(),
             'good_id' => $good->id,
-            'transaction_date' => now(),
+            'transaction_date' => $this->transactionDate,
             'item_name' => $good->name,
             'recipient_name' => $this->recipientId,
             'quantity' => $this->qty,
             'price' => $this->price,
-            'total_price' => $this->qty * $this->price,
+            'sell_price' => $this->sellPrice,
+            'total_price' => $this->qty * $this->sellPrice,
+            'profit' => ($this->sellPrice - $this->price) * $this->qty,
             'status' => $this->status,
             'due_date' => ($this->status === 'loan' && $this->dueDate) ? $this->dueDate : null,
+            'proof_of_delivery' => $proofPath,
         ]);
 
         $this->showAddModal = false;
-        $this->reset(['goodId', 'qty', 'price', 'recipientId', 'status', 'dueDate', 'proofFile']);
+        $this->reset(['goodId', 'qty', 'price', 'sellPrice', 'recipientId', 'status', 'transactionDate', 'dueDate', 'proofFile']);
     }
 
     public function openEdit(int $id)
     {
         $tx = Transaction::where('user_id', auth()->id())->findOrFail($id);
-        
+
         // Prevent editing if the associated good is soft-deleted
         if ($tx->good_id) {
             $good = Good::withTrashed()->find($tx->good_id);
@@ -168,23 +199,40 @@ class Goods extends Component
         $this->editItemName = $tx->item_name ?? '';
         $this->editQty = (int) $tx->quantity;
         $this->editPrice = (float) $tx->price;
+        $this->editSellPrice = (float) ($tx->sell_price ?? $tx->price);
         $this->editRecipientId = $tx->recipient_name ?? '';
         $this->editStatus = $tx->status ?? 'pending';
+        $this->editTransactionDate = $tx->transaction_date ? \Carbon\Carbon::parse($tx->transaction_date)->format('Y-m-d') : '';
         $this->editDueDate = $tx->due_date ? \Carbon\Carbon::parse($tx->due_date)->format('Y-m-d') : '';
+        $this->existingProof = $tx->proof_of_delivery;
+        $this->editProofFile = null;
         $this->showEditModal = true;
     }
 
     public function updateRecord()
     {
-        $this->validate([
+        $requiresProof = in_array($this->editStatus, ['delivered', 'loan']);
+
+        $rules = [
             'editQty' => 'required|integer|min:1',
             'editPrice' => 'required|numeric|min:0',
+            'editSellPrice' => 'required|numeric|min:0',
             'editStatus' => 'required|string|max:50',
-        ]);
+            'editTransactionDate' => 'required|date',
+            'editProofFile' => $requiresProof && !$this->existingProof
+                ? 'required|file|mimes:pdf,jpg,jpeg,png|max:10240'
+                : 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ];
+
+        if ($requiresProof && !$this->existingProof && !$this->editProofFile) {
+            $this->addError('editProofFile', 'Proof of delivery is required when status is delivered or loan.');
+        }
+
+        $this->validate($rules);
 
         if ($this->editTransactionId) {
             $transaction = Transaction::where('user_id', auth()->id())->findOrFail($this->editTransactionId);
-            
+
             // Check if the associated good is soft-deleted
             if ($transaction->good_id) {
                 $good = Good::withTrashed()->find($transaction->good_id);
@@ -192,46 +240,65 @@ class Goods extends Component
                     $this->addError('editQty', 'Cannot update transaction of a deleted good.');
                     return;
                 }
-                
+
                 if ($good) {
                     $diff = $this->editQty - $transaction->quantity;
-                    
+
                     // Check if stock is sufficient if increasing quantity
                     if ($diff > 0 && $good->stock < $diff) {
                         $this->addError('editQty', 'Insufficient stock in inventory. Available: ' . $good->stock);
                         return;
                     }
-                    
+
                     // Adjust stock
                     $good->decrement('stock', $diff);
                 }
             }
 
+            $proofPath = $transaction->proof_of_delivery;
+            if ($this->editProofFile) {
+                if ($proofPath) {
+                    \Storage::disk('public')->delete($proofPath);
+                }
+                $proofPath = $this->editProofFile->store('proofs', 'public');
+            } elseif (!$this->existingProof && $proofPath) {
+                \Storage::disk('public')->delete($proofPath);
+                $proofPath = null;
+            }
+
             $transaction->update([
                 'quantity' => $this->editQty,
                 'price' => $this->editPrice,
-                'total_price' => $this->editQty * $this->editPrice,
+                'sell_price' => $this->editSellPrice,
+                'total_price' => $this->editQty * $this->editSellPrice,
+                'profit' => ($this->editSellPrice - $this->editPrice) * $this->editQty,
                 'status' => $this->editStatus,
+                'transaction_date' => $this->editTransactionDate,
                 'due_date' => ($this->editStatus === 'loan' && $this->editDueDate) ? $this->editDueDate : null,
+                'proof_of_delivery' => $proofPath,
             ]);
         }
-        
+
         $this->showEditModal = false;
     }
 
     public function openView(int $id)
     {
         $tx = Transaction::where('user_id', auth()->id())->findOrFail($id);
+        $good = $tx->good_id ? Good::withTrashed()->find($tx->good_id) : null;
         $this->viewRecord = [
             'date' => optional($tx->transaction_date)->format('M d, Y') ?? '-',
             'item' => $tx->item_name ?? '-',
+            'unitType' => $good ? ($good->unit_type ? ucfirst($good->unit_type) : '-') : '-',
             'recipient' => $tx->recipient_name ?? '-',
             'qty' => $tx->quantity ?? 0,
             'price' => (float) ($tx->price ?? 0),
+            'sellPrice' => (float) ($tx->sell_price ?? $tx->price ?? 0),
             'total' => (float) ($tx->total_price ?? 0),
+            'profit' => (float) ($tx->profit ?? 0),
             'status' => ucfirst($tx->status ?? 'unknown'),
             'dueDate' => $tx->due_date ? \Carbon\Carbon::parse($tx->due_date)->format('M d, Y') : null,
-            'proof' => 'Uploaded',
+            'proof' => $tx->proof_of_delivery,
         ];
         $this->showViewModal = true;
     }
@@ -246,7 +313,7 @@ class Goods extends Component
     {
         if ($this->recordToDelete) {
             $tx = Transaction::where('user_id', auth()->id())->findOrFail($this->recordToDelete);
-            
+
             // Check if the associated good is soft-deleted
             if ($tx->good_id) {
                 $good = Good::withTrashed()->find($tx->good_id);
@@ -265,7 +332,7 @@ class Goods extends Component
     public function render()
     {
         $query = Transaction::where('user_id', auth()->id());
-        
+
         if ($this->statusFilter) {
             if ($this->statusFilter === 'in_progress') {
                 $query->whereIn('status', ['pending', 'transit']);
@@ -276,10 +343,44 @@ class Goods extends Component
 
         $transactions = $query->latest()->paginate(10);
         $goodsList = Good::where('user_id', auth()->id())->latest()->get();
-        
+
+        $loanSummary = Transaction::where('user_id', auth()->id())
+            ->where('status', 'loan')
+            ->selectRaw('recipient_name, SUM(total_price) as total_loan_amount, COUNT(*) as loan_count, MIN(due_date) as nearest_due_date')
+            ->groupBy('recipient_name')
+            ->orderByDesc('total_loan_amount')
+            ->get()
+            ->map(function ($row) {
+                $loans = Transaction::where('user_id', auth()->id())
+                    ->where('status', 'loan')
+                    ->where('recipient_name', $row->recipient_name)
+                    ->orderBy('due_date', 'asc')
+                    ->get()
+                    ->map(fn ($tx) => [
+                        'id' => $tx->id,
+                        'item_name' => $tx->item_name,
+                        'quantity' => $tx->quantity,
+                        'total_price' => (float) $tx->total_price,
+                        'transaction_date' => optional($tx->transaction_date)->format('M d, Y'),
+                        'due_date' => $tx->due_date ? \Carbon\Carbon::parse($tx->due_date)->format('M d, Y') : null,
+                        'is_overdue' => $tx->due_date && \Carbon\Carbon::parse($tx->due_date)->isPast(),
+                    ]);
+
+                return [
+                    'name' => $row->recipient_name,
+                    'total_loan_amount' => (float) $row->total_loan_amount,
+                    'loan_count' => (int) $row->loan_count,
+                    'nearest_due_date' => $row->nearest_due_date ? \Carbon\Carbon::parse($row->nearest_due_date)->format('M d, Y') : null,
+                    'nearest_due_date_is_overdue' => $row->nearest_due_date ? \Carbon\Carbon::parse($row->nearest_due_date)->isPast() : false,
+                    'loans' => $loans,
+                ];
+            })
+            ->values();
+
         return view('livewire.user.goods', [
             'transactions' => $transactions,
             'goodsList' => $goodsList,
+            'loanSummary' => $loanSummary,
         ]);
     }
 }

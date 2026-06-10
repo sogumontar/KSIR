@@ -1,13 +1,13 @@
 <div x-data="{ exportOpen: false, period: 'Monthly' }">
     <!-- Header Section -->
-    <div class="flex justify-between items-end mb-xl">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-md mb-xl">
         <div>
             <nav class="flex text-on-surface-variant text-label-md mb-xs">
                 <span>Admin</span>
                 <span class="mx-2">/</span>
-                <span class="text-primary font-bold">Sales History</span>
+                <span class="text-primary font-bold">Sales Monitoring</span>
             </nav>
-            <h2 class="font-headline-lg text-headline-lg text-primary uppercase tracking-tight">Sales History</h2>
+            <h2 class="font-headline-lg text-headline-lg text-primary uppercase tracking-tight">Sales Monitoring</h2>
         </div>
         <div class="relative">
             <button @click="exportOpen = !exportOpen" class="flex items-center gap-sm bg-secondary text-white px-lg py-3 rounded-lg font-label-lg hover:brightness-110 transition-all shadow-sm">
@@ -27,12 +27,12 @@
     </div>
     <!-- Filters Section -->
     <section class="bg-white border border-outline-variant rounded-xl p-md mb-lg shadow-sm flex flex-wrap items-end gap-md">
-        <div class="flex-1 min-w-[240px]">
+        <div class="flex-1 min-w-[200px]">
             <label class="block font-label-md text-on-surface-variant mb-xs">Date Range</label>
-            <div class="flex items-center border border-outline-variant rounded-lg bg-surface-container-lowest focus-within:ring-2 focus-within:ring-secondary-fixed-dim">
-                <input wire:model="dateFrom" class="border-none bg-transparent flex-1 p-2 text-body-md focus:ring-0" type="date"/>
-                <span class="text-outline mx-1">to</span>
-                <input wire:model="dateTo" class="border-none bg-transparent flex-1 p-2 text-body-md focus:ring-0" type="date"/>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-xs">
+                <input wire:model="dateFrom" class="border border-outline-variant rounded-lg bg-surface-container-lowest p-2 text-body-md focus:ring-2 focus:ring-secondary w-full" type="date"/>
+                <span class="text-outline text-center sm:px-xs">to</span>
+                <input wire:model="dateTo" class="border border-outline-variant rounded-lg bg-surface-container-lowest p-2 text-body-md focus:ring-2 focus:ring-secondary w-full" type="date"/>
             </div>
         </div>
         <div class="w-48">
@@ -62,12 +62,12 @@
         </button>
     </section>
     <!-- KPI Row -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-lg">
+    <div class="grid @container grid-cols-1 md:grid-cols-3 @sm:grid-cols-2 @md:grid-cols-3 gap-lg mb-lg">
         <div class="bg-white border border-outline-variant rounded-xl p-lg shadow-sm overflow-hidden relative">
             <div class="flex justify-between items-start mb-sm">
                 <div>
                     <p class="text-on-surface-variant font-label-md uppercase tracking-wider">Total Revenue</p>
-                    <h3 class="font-display text-display text-primary mt-xs">${{ number_format($realTotalRevenue, 2) }}</h3>
+                    <h3 class="font-display text-display text-primary mt-xs">Rp{{ number_format($realTotalRevenue, 0) }}</h3>
                 </div>
                 <span class="material-symbols-outlined text-secondary text-4xl">payments</span>
             </div>
@@ -88,7 +88,7 @@
             <div class="flex justify-between items-start mb-sm">
                 <div>
                     <p class="text-on-surface-variant font-label-md uppercase tracking-wider">Avg Order Value</p>
-                    <h3 class="font-display text-display text-primary mt-xs">${{ number_format($realAvgOrderValue, 2) }}</h3>
+                    <h3 class="font-display text-display text-primary mt-xs">Rp{{ number_format($realAvgOrderValue, 0) }}</h3>
                 </div>
                 <span class="material-symbols-outlined text-secondary text-4xl">analytics</span>
             </div>
@@ -97,7 +97,7 @@
     </div>
     <!-- Middle Section: Performance Chart -->
     <section class="bg-white border border-outline-variant rounded-xl p-lg mb-lg shadow-sm">
-        <div class="flex justify-between items-center mb-lg">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-md mb-lg">
             <h4 class="font-headline-md text-headline-md text-primary">Sales Performance Over Time</h4>
             <div class="flex gap-xs bg-surface-container-low p-1 rounded-lg">
                 <button :class="period === 'Daily' ? 'bg-white shadow-sm' : ''" @click="period = 'Daily'" class="px-md py-1 rounded font-label-md transition-all">Daily</button>
@@ -122,7 +122,7 @@
             </div>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse min-w-[640px]">
                 <thead>
                 <tr class="bg-primary text-white">
                     <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">Date</th>
@@ -143,7 +143,7 @@
                         {{ $tx->user->name ?? 'System' }}
                     </td>
                     <td class="px-lg py-md text-body-md">{{ $tx->recipient_name }}</td>
-                    <td class="px-lg py-md text-body-md text-right font-bold text-secondary">${{ number_format($tx->total_price, 2) }}</td>
+                    <td class="px-lg py-md text-body-md text-right font-bold text-secondary">Rp{{ number_format($tx->total_price, 0) }}</td>
                 </tr>
                 @empty
                 <tr>
@@ -164,21 +164,27 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('salesPerformanceChart').getContext('2d');
+    function initSalesChart() {
+        const existingChart = Chart.getChart('salesPerformanceChart');
+        if (existingChart) {
+            existingChart.destroy();
+        }
 
-        // Create Gradient
+        const ctx = document.getElementById('salesPerformanceChart').getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
         gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
 
+        const chartLabels = @json($chartLabels);
+        const chartValues = @json($chartValues);
+
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                labels: chartLabels,
                 datasets: [{
-                    label: 'Revenue ($)',
-                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 42000, 48000],
+                    label: 'Revenue (Rp)',
+                    data: chartValues,
                     borderColor: '#10B981',
                     borderWidth: 4,
                     fill: true,
@@ -204,7 +210,12 @@
                         bodyFont: { family: 'Public Sans', size: 16, weight: 'bold' },
                         padding: 12,
                         cornerRadius: 8,
-                        displayColors: false
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Rp ' + context.parsed.y.toLocaleString('id-ID');
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -217,7 +228,7 @@
                         ticks: {
                             color: '#64748B',
                             font: { family: 'Public Sans', size: 12 },
-                            callback: function(value) { return '$' + value.toLocaleString(); }
+                            callback: function(value) { return 'Rp ' + value.toLocaleString('id-ID'); }
                         }
                     },
                     x: {
@@ -232,6 +243,16 @@
                 }
             }
         });
+    }
+
+    document.addEventListener('DOMContentLoaded', initSalesChart);
+
+    document.addEventListener('livewire:navigated', initSalesChart);
+
+    Livewire.hook('morph.updated', ({ el }) => {
+        if (el.querySelector && el.querySelector('#salesPerformanceChart')) {
+            initSalesChart();
+        }
     });
 </script>
 @endpush

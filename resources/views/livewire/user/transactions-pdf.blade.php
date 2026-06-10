@@ -119,8 +119,8 @@
                     <td>{{ $tx->item_name ?? '-' }}</td>
                     <td>{{ $tx->recipient_name ?? '-' }}</td>
                     <td class="text-right">{{ $tx->quantity ?? 0 }}</td>
-                    <td class="text-right">${{ number_format($tx->price ?? 0, 2) }}</td>
-                    <td class="text-right">${{ number_format($tx->total_price ?? 0, 2) }}</td>
+                    <td class="text-right">Rp{{ number_format($tx->price ?? 0, 0) }}</td>
+                    <td class="text-right">Rp{{ number_format($tx->total_price ?? 0, 0) }}</td>
                     <td><span class="status status-{{ $tx->status ?? 'pending' }}">{{ ucfirst($tx->status ?? 'Unknown') }}</span></td>
                     <td>{{ $tx->due_date ? \Carbon\Carbon::parse($tx->due_date)->format('M d, Y') : '—' }}</td>
                 </tr>
@@ -129,7 +129,7 @@
     </table>
 
     <div class="summary">
-        <strong>Grand Total: ${{ number_format($transactions->sum('total_price'), 2) }}</strong>
+        <strong>Grand Total: Rp{{ number_format($transactions->sum('total_price'), 0) }}</strong>
     </div>
 
     <div class="footer">

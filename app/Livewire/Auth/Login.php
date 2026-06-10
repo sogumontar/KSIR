@@ -33,15 +33,19 @@ class Login extends Component
             'password' => 'required',
         ]);
 
-        if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember) || 
+        if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember) ||
             Auth::attempt(['name' => $this->email, 'password' => $this->password], $this->remember)) {
-            
-            session()->regenerate();
+            if (auth()->user()-> status != 'active') {
+                $this->addError('email', 'Your account is temporary inactive. Please contact your administrator.');
+            }else{
+                session()->regenerate();
 
-            if (auth()->user()->is_admin) {
-                return redirect()->to(route('admin.dashboard'));
+                if (auth()->user()->is_admin) {
+                    return redirect()->to(route('admin.dashboard'));
+                }
+                return redirect()->to(route('user.dashboard'));
+
             }
-            return redirect()->to(route('user.dashboard'));
         }
 
         $this->addError('email', 'These credentials do not match our records.');

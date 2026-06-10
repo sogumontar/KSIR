@@ -5,7 +5,7 @@
         <p class="font-body-lg text-body-lg text-on-surface-variant">Monitor platform growth and user registration metrics.</p>
     </section>
     <!-- KPI Cards Grid -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+    <section class="@container grid grid-cols-1 @sm:grid-cols-2 @md:grid-cols-3 gap-gutter">
         <!-- Total Users -->
         <div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <div class="flex justify-between items-start mb-md">
@@ -91,7 +91,7 @@
             </div>
         </div>
         <!-- Chart Placeholder with custom SVG/WebGL or CSS simulation -->
-        <div class="w-full h-[400px] chart-container relative rounded-lg overflow-hidden border border-outline-variant bg-surface">
+        <div class="w-full h-[250px] md:h-[400px] chart-container relative rounded-lg overflow-hidden border border-outline-variant bg-surface">
             <!-- Data Points Representation -->
             <svg class="absolute inset-0 w-full h-full preserve-3d" viewBox="0 0 1000 400">
                 <!-- High Contrast Area Fill -->
@@ -130,7 +130,7 @@
                 <button class="text-tertiary font-label-md text-label-md hover:underline">View All</button>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse min-w-[500px]">
                     <thead class="bg-primary text-on-secondary">
                     <tr>
                         <th class="p-md font-label-md text-label-md">User Name</th>
