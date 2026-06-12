@@ -329,6 +329,11 @@ class Goods extends Component
         $this->recordToDelete = null;
     }
 
+    public function mount()
+    {
+        abort_if(!auth()->user()?->menu_sales_record, 403, 'Unauthorized access to Sales Record.');
+    }
+
     public function render()
     {
         $query = Transaction::where('user_id', auth()->id());

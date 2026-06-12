@@ -138,7 +138,7 @@
                 <h3 class="font-display text-display text-primary">{{ $itemsOnLoan }}</h3>
             </div>
             <span class="flex items-center text-tertiary font-label-md group-hover:underline">
-                Review loan agreements
+                Loan details
                 <span class="material-symbols-outlined text-sm ml-xs" data-icon="arrow_forward">arrow_forward</span>
             </span>
         </a>

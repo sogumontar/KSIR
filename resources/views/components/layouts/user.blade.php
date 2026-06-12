@@ -45,23 +45,40 @@
             <span class="font-label-lg text-label-lg">Dashboard</span>
         </a>
         <!-- Sales Record -->
+        @if(auth()->user()?->menu_sales_record)
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.goods') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.goods') }}" wire:navigate @click="sidebarOpen = false">
             <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
             <span class="font-label-lg text-label-lg">Sales Record</span>
         </a>
+        @endif
+        
         <!-- Goods Inventory -->
+        @if(auth()->user()?->menu_goods_inventory)
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.inventory') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.inventory') }}" wire:navigate @click="sidebarOpen = false">
             <span class="material-symbols-outlined" data-icon="layers">layers</span>
             <span class="font-label-lg text-label-lg">Goods Inventory</span>
         </a>
+        @endif
+        
         <!-- Sales Monitoring -->
+        @if(auth()->user()?->menu_sales_monitoring)
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.sales') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.sales') }}" wire:navigate @click="sidebarOpen = false">
             <span class="material-symbols-outlined" data-icon="history">history</span>
             <span class="font-label-lg text-label-lg">Sales Monitoring</span>
         </a>
+        @endif
+        
+        <!-- Expenses -->
+        @if(auth()->user()?->menu_expenses)
+        <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.expenses') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
+            href="{{ route('user.expenses') }}" wire:navigate @click="sidebarOpen = false">
+             <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+             <span class="font-label-lg text-label-lg">Personal Expenses</span>
+        </a>
+        @endif
         <!-- Profile -->
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.profile') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.profile') }}" wire:navigate @click="sidebarOpen = false">

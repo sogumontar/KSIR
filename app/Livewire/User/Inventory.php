@@ -174,6 +174,11 @@ class Inventory extends Component
         session()->flash('message', 'Good deleted successfully.');
     }
 
+    public function mount()
+    {
+        abort_if(!auth()->user()?->menu_goods_inventory, 403, 'Unauthorized access to Goods Inventory.');
+    }
+
     public function render()
     {
         $goods = Good::where('user_id', auth()->id())

@@ -9,6 +9,7 @@ use App\Livewire\User\Goods;
 use App\Livewire\User\SalesHistory;
 use App\Livewire\User\Inventory;
 use App\Livewire\User\Profile;
+use App\Livewire\Expense\ExpenseManager;
 
 Route::get('/', Login::class)->name('login');
 
@@ -23,6 +24,7 @@ Route::middleware(['auth', 'user'])->prefix('user')->name('user.')->group(functi
     Route::get('/sales', SalesHistory::class)->name('sales');
     Route::get('/inventory', Inventory::class)->name('inventory');
     Route::get('/profile', Profile::class)->name('profile');
+Route::get('/expenses', ExpenseManager::class)->name('expenses');
 });
 
 Route::get('/session-check', function () {

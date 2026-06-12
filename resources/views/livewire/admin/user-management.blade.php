@@ -274,6 +274,40 @@
                                 ></span>
                             </button>
                         </div>
+                        
+                        <hr class="border-outline-variant my-xl">
+                        <div class="space-y-base">
+                            <label class="block font-label-md text-on-surface">Menu Permissions</label>
+                            <div class="text-sm text-on-surface-variant mb-4">Toggle access to specific menus for this user. Only applies to staff users.</div>
+                            
+                            <div class="grid grid-cols-1 gap-sm">
+                                <div x-data="{ enabled: @entangle('editMenuSalesRecord') }" class="flex items-center justify-between p-4 border border-outline rounded-lg">
+                                    <div class="font-label-lg text-primary">Sales Record</div>
+                                    <button type="button" x-on:click="enabled = !enabled" :class="enabled ? 'bg-secondary' : 'bg-outline'" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none">
+                                        <span aria-hidden="true" :class="enabled ? 'translate-x-5' : 'translate-x-0'" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                    </button>
+                                </div>
+                                <div x-data="{ enabled: @entangle('editMenuGoodsInventory') }" class="flex items-center justify-between p-4 border border-outline rounded-lg">
+                                    <div class="font-label-lg text-primary">Goods Inventory</div>
+                                    <button type="button" x-on:click="enabled = !enabled" :class="enabled ? 'bg-secondary' : 'bg-outline'" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none">
+                                        <span aria-hidden="true" :class="enabled ? 'translate-x-5' : 'translate-x-0'" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                    </button>
+                                </div>
+                                <div x-data="{ enabled: @entangle('editMenuSalesMonitoring') }" class="flex items-center justify-between p-4 border border-outline rounded-lg">
+                                    <div class="font-label-lg text-primary">Sales Monitoring</div>
+                                    <button type="button" x-on:click="enabled = !enabled" :class="enabled ? 'bg-secondary' : 'bg-outline'" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none">
+                                        <span aria-hidden="true" :class="enabled ? 'translate-x-5' : 'translate-x-0'" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                    </button>
+                                </div>
+                                <div x-data="{ enabled: @entangle('editMenuExpenses') }" class="flex items-center justify-between p-4 border border-outline rounded-lg">
+                                    <div class="font-label-lg text-primary">Personal Expenses</div>
+                                    <button type="button" x-on:click="enabled = !enabled" :class="enabled ? 'bg-secondary' : 'bg-outline'" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none">
+                                        <span aria-hidden="true" :class="enabled ? 'translate-x-5' : 'translate-x-0'" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </form>
             </div>

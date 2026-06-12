@@ -94,6 +94,11 @@ class SalesHistory extends Component
         return ['labels' => $labels, 'values' => $values];
     }
 
+    public function mount()
+    {
+        abort_if(!auth()->user()?->menu_sales_monitoring, 403, 'Unauthorized access to Sales Monitoring.');
+    }
+
     public function render()
     {
         $filteredQuery = $this->getFilteredQuery();

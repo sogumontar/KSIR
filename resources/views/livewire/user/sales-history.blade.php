@@ -35,15 +35,6 @@
                 <input wire:model="dateTo" class="border border-outline-variant rounded-lg bg-surface-container-lowest p-2 text-body-md focus:ring-2 focus:ring-secondary w-full" type="date"/>
             </div>
         </div>
-        <div class="w-48">
-            <label class="block font-label-md text-on-surface-variant mb-xs">Time Period</label>
-            <select wire:model="period" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-body-md focus:ring-2 focus:ring-secondary">
-                <option>Daily</option>
-                <option>Weekly</option>
-                <option>Monthly</option>
-                <option>Annually</option>
-            </select>
-        </div>
         <div class="w-64">
             <label class="block font-label-md text-on-surface-variant mb-xs">User / Staff</label>
             <select wire:model="staffFilter" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-body-md focus:ring-2 focus:ring-secondary">

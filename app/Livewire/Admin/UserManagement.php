@@ -32,6 +32,12 @@ class UserManagement extends Component
     public $editPhoto;
     public ?string $existingPhoto = null;
 
+    // Menu Permissions
+    public bool $editMenuSalesRecord = true;
+    public bool $editMenuGoodsInventory = true;
+    public bool $editMenuSalesMonitoring = true;
+    public bool $editMenuExpenses = true;
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -42,6 +48,10 @@ class UserManagement extends Component
         $this->reset(['editingUserId', 'editName', 'editEmail', 'editPhone', 'editRole', 'editStatus', 'editPassword', 'editPassword_confirmation', 'editPhoto', 'existingPhoto']);
         $this->editRole = 'staff';
         $this->editStatus = true;
+        $this->editMenuSalesRecord = true;
+        $this->editMenuGoodsInventory = true;
+        $this->editMenuSalesMonitoring = true;
+        $this->editMenuExpenses = true;
         $this->showEditSidebar = true;
     }
 
@@ -58,6 +68,10 @@ class UserManagement extends Component
         $this->editPassword_confirmation = '';
         $this->existingPhoto = $user->photo_path;
         $this->editPhoto = null;
+        $this->editMenuSalesRecord = $user->menu_sales_record;
+        $this->editMenuGoodsInventory = $user->menu_goods_inventory;
+        $this->editMenuSalesMonitoring = $user->menu_sales_monitoring;
+        $this->editMenuExpenses = $user->menu_expenses;
         $this->showEditSidebar = true;
     }
 
@@ -73,6 +87,10 @@ class UserManagement extends Component
             'editPhone' => 'nullable|string|max:20',
             'editRole' => 'required|in:admin,staff',
             'editPhoto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'editMenuSalesRecord' => 'boolean',
+            'editMenuGoodsInventory' => 'boolean',
+            'editMenuSalesMonitoring' => 'boolean',
+            'editMenuExpenses' => 'boolean',
         ];
 
         if ($isAdd) {
@@ -108,6 +126,10 @@ class UserManagement extends Component
                 'is_admin' => $isAdmin,
                 'status' => $statusString,
                 'photo_path' => $photoPath,
+                'menu_sales_record' => $this->editMenuSalesRecord,
+                'menu_goods_inventory' => $this->editMenuGoodsInventory,
+                'menu_sales_monitoring' => $this->editMenuSalesMonitoring,
+                'menu_expenses' => $this->editMenuExpenses,
             ]);
         } else {
             $user = User::findOrFail($this->editingUserId);
@@ -118,6 +140,10 @@ class UserManagement extends Component
                 'is_admin' => $isAdmin,
                 'status' => $statusString,
                 'photo_path' => $photoPath,
+                'menu_sales_record' => $this->editMenuSalesRecord,
+                'menu_goods_inventory' => $this->editMenuGoodsInventory,
+                'menu_sales_monitoring' => $this->editMenuSalesMonitoring,
+                'menu_expenses' => $this->editMenuExpenses,
             ];
 
             if ($this->editPassword) {
