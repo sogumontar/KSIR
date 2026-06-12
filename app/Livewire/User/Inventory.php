@@ -176,7 +176,6 @@ class Inventory extends Component
 
     public function mount()
     {
-        abort_if(!auth()->user()?->menu_goods_inventory, 403, 'Unauthorized access to Goods Inventory.');
     }
 
     public function render()

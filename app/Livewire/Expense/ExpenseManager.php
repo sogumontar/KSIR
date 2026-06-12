@@ -138,7 +138,6 @@ class ExpenseManager extends Component
 
     public function mount()
     {
-        abort_if(!auth()->user()?->menu_expenses, 403, 'Unauthorized access to Personal Expenses.');
         $this->categoryNames = ExpenseCategory::pluck('name')->toArray();
     }
 

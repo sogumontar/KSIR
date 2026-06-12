@@ -331,7 +331,6 @@ class Goods extends Component
 
     public function mount()
     {
-        abort_if(!auth()->user()?->menu_sales_record, 403, 'Unauthorized access to Sales Record.');
     }
 
     public function render()

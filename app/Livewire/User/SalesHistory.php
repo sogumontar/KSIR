@@ -96,7 +96,6 @@ class SalesHistory extends Component
 
     public function mount()
     {
-        abort_if(!auth()->user()?->menu_sales_monitoring, 403, 'Unauthorized access to Sales Monitoring.');
     }
 
     public function render()

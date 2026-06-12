@@ -45,40 +45,32 @@
             <span class="font-label-lg text-label-lg">Dashboard</span>
         </a>
         <!-- Sales Record -->
-        @if(auth()->user()?->menu_sales_record)
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.goods') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.goods') }}" wire:navigate @click="sidebarOpen = false">
             <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
             <span class="font-label-lg text-label-lg">Sales Record</span>
         </a>
-        @endif
         
         <!-- Goods Inventory -->
-        @if(auth()->user()?->menu_goods_inventory)
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.inventory') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.inventory') }}" wire:navigate @click="sidebarOpen = false">
             <span class="material-symbols-outlined" data-icon="layers">layers</span>
             <span class="font-label-lg text-label-lg">Goods Inventory</span>
         </a>
-        @endif
         
         <!-- Sales Monitoring -->
-        @if(auth()->user()?->menu_sales_monitoring)
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.sales') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.sales') }}" wire:navigate @click="sidebarOpen = false">
             <span class="material-symbols-outlined" data-icon="history">history</span>
             <span class="font-label-lg text-label-lg">Sales Monitoring</span>
         </a>
-        @endif
         
         <!-- Expenses -->
-        @if(auth()->user()?->menu_expenses)
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.expenses') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
             href="{{ route('user.expenses') }}" wire:navigate @click="sidebarOpen = false">
              <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
              <span class="font-label-lg text-label-lg">Personal Expenses</span>
         </a>
-        @endif
         <!-- Profile -->
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.profile') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.profile') }}" wire:navigate @click="sidebarOpen = false">
@@ -182,8 +174,30 @@
         </div>
     </header>
     <!-- Page Content -->
-    <main class="p-md lg:p-lg max-w-[1440px] mx-auto w-full space-y-lg">
-        {{ $slot }}
+    <main class="p-md lg:p-lg max-w-[1440px] mx-auto w-full space-y-lg relative">
+        @php
+            $isAuthorized = true;
+            if (request()->routeIs('user.goods') && !auth()->user()?->menu_sales_record) $isAuthorized = false;
+            if (request()->routeIs('user.inventory') && !auth()->user()?->menu_goods_inventory) $isAuthorized = false;
+            if (request()->routeIs('user.sales') && !auth()->user()?->menu_sales_monitoring) $isAuthorized = false;
+            if (request()->routeIs('user.expenses') && !auth()->user()?->menu_expenses) $isAuthorized = false;
+        @endphp
+
+        @if(!$isAuthorized)
+            <div class="absolute inset-0 z-50 flex items-center justify-center p-4" style="min-height: 50vh;">
+                <div class="bg-white/90 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-200 text-center max-w-md w-full relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-error"></div>
+                    <span class="material-symbols-outlined text-6xl text-error mb-4">lock</span>
+                    <h2 class="text-2xl font-headline-lg font-bold text-slate-900 mb-2">Access Restricted</h2>
+                    <p class="text-slate-600 font-body-md">You do not have permission to use this module. The page is in view-only mode. Please contact your administrator to request full access.</p>
+                </div>
+            </div>
+            <div inert class="blur-[4px] opacity-60 pointer-events-none select-none transition-all duration-300">
+                {{ $slot }}
+            </div>
+        @else
+            {{ $slot }}
+        @endif
     </main>
 </div>
 
