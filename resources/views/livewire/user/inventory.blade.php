@@ -157,11 +157,18 @@
                         <option value="pack">Pack</option>
                         <option value="set">Set</option>
                         <option value="kg">Kilogram (kg)</option>
+                        <option value="kg">Ons</option>
+                        <option value="kg">Gram</option>
                         <option value="liter">Liter</option>
                         <option value="bundle">Bundle</option>
                         <option value="roll">Roll</option>
                         <option value="drum">Drum</option>
                         <option value="unit">Unit</option>
+                        <option value="unit">Renceng</option>
+                        <option value="unit">Bal</option>
+                        <option value="unit">Krat</option>
+                        <option value="unit">Slop</option>
+                        <option value="unit">Lusin</option>
                     </select>
                     @error('unitType') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                 </div>
@@ -256,11 +263,18 @@
                         <option value="pack">Pack</option>
                         <option value="set">Set</option>
                         <option value="kg">Kilogram (kg)</option>
+                        <option value="kg">Ons</option>
+                        <option value="kg">Gram</option>
                         <option value="liter">Liter</option>
                         <option value="bundle">Bundle</option>
                         <option value="roll">Roll</option>
                         <option value="drum">Drum</option>
                         <option value="unit">Unit</option>
+                        <option value="unit">Renceng</option>
+                        <option value="unit">Bal</option>
+                        <option value="unit">Krat</option>
+                        <option value="unit">Slop</option>
+                       <option value="unit">Lusin</option>
                     </select>
                     @error('editUnitType') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                 </div>
