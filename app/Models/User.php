@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'phone_number', 'birth_date', 'photo_path', 'status', 'is_admin', 'password', 'menu_sales_record', 'menu_goods_inventory', 'menu_sales_monitoring', 'menu_expenses'])]
+#[Fillable(['name', 'email', 'phone_number', 'birth_date', 'photo_path', 'status', 'is_admin', 'password', 'menu_sales_record', 'menu_goods_inventory', 'menu_sales_monitoring', 'menu_expenses', 'unique_code', 'menu_split_groups'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -33,12 +33,46 @@ class User extends Authenticatable
             'menu_goods_inventory' => 'boolean',
             'menu_sales_monitoring' => 'boolean',
             'menu_expenses' => 'boolean',
+            'menu_split_groups' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function ($user) {
+            if (empty($user->unique_code)) {
+                $user->unique_code = static::generateUniqueCode();
+            }
+        });
+    }
+
+    public static function generateUniqueCode(): string
+    {
+        do {
+            $code = strtoupper(\Illuminate\Support\Str::random(8));
+        } while (static::where('unique_code', $code)->exists());
+
+        return $code;
     }
 
     public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function groups(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Group::class, 'created_by');
+    }
+
+    public function groupMemberships(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(GroupMember::class);
+    }
+
+    public function joinedGroups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'group_members', 'user_id', 'group_id')->withTimestamps();
     }
 
     public function getAvatarAttribute(): ?string

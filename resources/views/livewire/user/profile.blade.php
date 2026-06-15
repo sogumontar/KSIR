@@ -21,12 +21,25 @@
                     {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}
                 </div>
             @endif
-            <div class="text-center sm:text-left">
+            <div class="text-center sm:text-left flex-1">
                 <h3 class="font-headline-md text-headline-md text-slate-900 m-0">{{ auth()->user()->name }}</h3>
                 <p class="text-slate-500 mt-1">{{ auth()->user()->email }}</p>
-                <span class="inline-flex items-center mt-2 px-3 py-1 rounded-full text-sm font-medium {{ auth()->user()->is_admin ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-blue-100 text-blue-800 border border-blue-200' }}">
-                    {{ auth()->user()->is_admin ? 'Admin' : 'Staff' }}
-                </span>
+                <div class="mt-3 flex items-center justify-center sm:justify-start gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 w-fit">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Unique Code:</span>
+                    <span class="font-mono text-sm font-bold text-primary select-all" id="uniqueCodeVal">{{ auth()->user()->unique_code }}</span>
+                    <button 
+                        onclick="navigator.clipboard.writeText('{{ auth()->user()->unique_code }}'); alert('Code copied to clipboard!');" 
+                        class="text-slate-400 hover:text-primary transition-colors flex items-center" 
+                        title="Copy to clipboard"
+                    >
+                        <span class="material-symbols-outlined text-sm">content_copy</span>
+                    </button>
+                </div>
+                <div class="mt-3">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ auth()->user()->is_admin ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-blue-100 text-blue-800 border border-blue-200' }}">
+                        {{ auth()->user()->is_admin ? 'Admin' : 'Staff' }}
+                    </span>
+                </div>
             </div>
         </div>
     </div>

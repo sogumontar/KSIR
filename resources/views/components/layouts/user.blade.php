@@ -1,3 +1,7 @@
+@php
+    $notifications = auth()->user()?->notifications()->latest()->take(10)->get() ?? collect();
+    $unreadCount = auth()->user()?->unreadNotifications()->count() ?? 0;
+@endphp
 <!DOCTYPE html>
 <html class="light" lang="en">
 <head>
@@ -11,7 +15,7 @@
 
     @stack('styles')
 </head>
-<body class="bg-[#F8FAFC] font-body-md text-on-surface" x-data="{ sidebarOpen: false, notifOpen: false, n: [{read: true}, {read: true}, {read: true}, {read: true}] }">
+<body class="bg-[#F8FAFC] font-body-md text-on-surface" x-data="{ sidebarOpen: false, notifOpen: false }">
 
 <!-- Mobile Sidebar Overlay -->
 <div
@@ -71,6 +75,12 @@
              <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
              <span class="font-label-lg text-label-lg">Personal Expenses</span>
         </a>
+        <!-- Split Groups -->
+        <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.groups') || request()->routeIs('user.group-detail') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
+            href="{{ route('user.groups') }}" wire:navigate @click="sidebarOpen = false">
+             <span class="material-symbols-outlined" data-icon="groups">groups</span>
+             <span class="font-label-lg text-label-lg">Split Groups</span>
+        </a>
         <!-- Profile -->
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.profile') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.profile') }}" wire:navigate @click="sidebarOpen = false">
@@ -109,58 +119,40 @@
                 <div class="relative" @click.away="notifOpen = false">
                     <button @click="notifOpen = !notifOpen" class="p-xs hover:bg-surface-container-low rounded-full transition-all relative">
                         <span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
-                        <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full" x-show="notifOpen === false"></span>
+                        @if($unreadCount > 0)
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+                        @endif
                     </button>
                     <!-- Notification Dropdown Panel -->
                     <div x-show="notifOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" @click.stop class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-200 z-50 overflow-y-auto" x-cloak style="min-width: 320px;">
                         <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center sticky top-0">
-                            <span class="font-label-md text-slate-700 font-semibold">Notifications</span>
-                            <button @click="notifOpen = false; $nextTick(() => { const n = [true]; for(let i = 0; i < n.length; i++) n[i].read = false; })" class="text-xs text-slate-500 hover:text-primary transition-colors">Mark all as read</button>
+                            <span class="font-label-md text-slate-700 font-semibold text-sm">Notifications ({{ $unreadCount }})</span>
+                            @if($unreadCount > 0)
+                                <form method="POST" action="{{ route('user.notifications.read-all') }}">
+                                    @csrf
+                                    <button type="submit" class="text-xs text-slate-500 hover:text-primary transition-colors">Mark all as read</button>
+                                </form>
+                            @endif
                         </div>
-                        <div class="divide-y divide-y-0">
-                            <!-- Dummy Notification 1 -->
-                            <div class="p-3 hover:bg-slate-50 transition-colors cursor-pointer flex items-start gap-3" :class="!n[0].read && 'bg-slate-50'">
-                                <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                                    <span class="material-symbols-outlined text-amber-700 text-sm">inventory_2</span>
+                        <div class="divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
+                            @forelse($notifications as $notification)
+                                <div class="p-3 hover:bg-slate-50 transition-colors flex items-start gap-3 {{ $notification->read_at ? '' : 'bg-blue-50/50' }}">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                                        <span class="material-symbols-outlined text-blue-600 text-sm">groups</span>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-slate-900 leading-tight">{{ $notification->data['message'] ?? '' }}</p>
+                                        <p class="text-xs text-slate-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                                    </div>
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm text-slate-900 font-medium leading-tight">New order created</p>
-                                    <p class="text-xs text-slate-500">Sales Record #1234 — 5 min ago</p>
+                            @empty
+                                <div class="p-4 text-center text-sm text-slate-500">
+                                    No notifications.
                                 </div>
-                            </div>
-                            <!-- Dummy Notification 2 -->
-                            <div class="p-3 hover:bg-slate-50 transition-colors cursor-pointer flex items-start gap-3" :class="!n[1].read && 'bg-slate-50'">
-                                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                                    <span class="material-symbols-outlined text-red-600 text-sm">warning</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm text-slate-900 font-medium leading-tight">Stock alert: Item X low</p>
-                                    <p class="text-xs text-slate-500">Goods Inventory — 12 min ago</p>
-                                </div>
-                            </div>
-                            <!-- Dummy Notification 3 -->
-                            <div class="p-3 hover:bg-slate-50 transition-colors cursor-pointer flex items-start gap-3" :class="!n[2].read && 'bg-slate-50'">
-                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                                    <span class="material-symbols-outlined text-blue-600 text-sm">local_shipping</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm text-slate-900 font-medium leading-tight">Loan overdue reminder</p>
-                                    <p class="text-xs text-slate-500">Sales Record #1190 — 1 hour ago</p>
-                                </div>
-                            </div>
-                            <!-- Dummy Notification 4 -->
-                            <div class="p-3 hover:bg-slate-50 transition-colors cursor-pointer flex items-start gap-3" :class="!n[3].read && 'bg-slate-50'">
-                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                                    <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm text-slate-900 font-medium leading-tight">Delivery confirmed</p>
-                                    <p class="text-xs text-slate-500">Sales Record #1098 — 30 min ago</p>
-                                </div>
-                            </div>
+                            @endforelse
                         </div>
-                        <div class="p-3 border-t border-slate-100">
-                            <a href="#" class="block text-center text-sm text-primary hover:underline">View all notifications</a>
+                        <div class="p-2 border-t border-slate-100 text-center">
+                            <span class="text-[10px] text-slate-400">Database Notifications</span>
                         </div>
                     </div>
                 </div>
@@ -181,6 +173,8 @@
             if (request()->routeIs('user.inventory') && !auth()->user()?->menu_goods_inventory) $isAuthorized = false;
             if (request()->routeIs('user.sales') && !auth()->user()?->menu_sales_monitoring) $isAuthorized = false;
             if (request()->routeIs('user.expenses') && !auth()->user()?->menu_expenses) $isAuthorized = false;
+            if (request()->routeIs('user.groups') && !auth()->user()?->menu_split_groups) $isAuthorized = false;
+            if (request()->routeIs('user.group-detail') && !auth()->user()?->menu_split_groups) $isAuthorized = false;
         @endphp
 
         @if(!$isAuthorized)

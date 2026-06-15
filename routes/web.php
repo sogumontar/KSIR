@@ -24,7 +24,14 @@ Route::middleware(['auth', 'user'])->prefix('user')->name('user.')->group(functi
     Route::get('/sales', SalesHistory::class)->name('sales');
     Route::get('/inventory', Inventory::class)->name('inventory');
     Route::get('/profile', Profile::class)->name('profile');
-Route::get('/expenses', ExpenseManager::class)->name('expenses');
+    Route::get('/expenses', ExpenseManager::class)->name('expenses');
+    Route::get('/groups', \App\Livewire\User\Groups\GroupList::class)->name('groups');
+    Route::get('/groups/join/{token}', [\App\Http\Controllers\GroupInviteController::class, 'join'])->name('groups.join');
+    Route::get('/groups/{id}', \App\Livewire\User\Groups\GroupDetail::class)->name('group-detail');
+    Route::post('/notifications/read-all', function () {
+        auth()->user()?->unreadNotifications->markAsRead();
+        return back();
+    })->name('notifications.read-all');
 });
 
 Route::get('/session-check', function () {
