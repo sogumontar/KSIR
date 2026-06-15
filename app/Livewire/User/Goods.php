@@ -32,6 +32,8 @@ class Goods extends Component
     public string $status = 'pending';
     public string $transactionDate = '';
     public string $dueDate = '';
+    public string $salesType = 'offline';
+    public ?string $salesCode = null;
     public $proofFile;
 
     // Edit form
@@ -44,6 +46,8 @@ class Goods extends Component
     public string $editStatus = 'pending';
     public string $editTransactionDate = '';
     public string $editDueDate = '';
+    public string $editSalesType = 'offline';
+    public ?string $editSalesCode = null;
     public $editProofFile;
     public ?string $existingProof = null;
 
@@ -102,7 +106,7 @@ class Goods extends Component
 
     public function openAdd()
     {
-        $this->reset(['goodId', 'qty', 'price', 'sellPrice', 'recipientId', 'status', 'transactionDate', 'dueDate', 'proofFile']);
+        $this->reset(['goodId', 'qty', 'price', 'sellPrice', 'recipientId', 'status', 'transactionDate', 'dueDate', 'proofFile', 'salesType', 'salesCode']);
         $this->transactionDate = now()->format('Y-m-d');
         $this->showAddModal = true;
     }
@@ -134,6 +138,8 @@ class Goods extends Component
             'sellPrice' => 'required|numeric|min:0',
             'recipientId' => 'required|string|max:255',
             'status' => 'required|string|max:50',
+            'salesType' => 'required|in:offline,online',
+            'salesCode' => 'required_if:salesType,online|nullable|string|max:255',
             'transactionDate' => 'required|date',
             'proofFile' => $requiresProof
                 ? 'required|file|mimes:pdf,jpg,jpeg,png|max:10240'
@@ -174,12 +180,14 @@ class Goods extends Component
             'total_price' => $this->qty * $this->sellPrice,
             'profit' => ($this->sellPrice - $this->price) * $this->qty,
             'status' => $this->status,
+            'sales_type' => $this->salesType,
+            'sales_code' => $this->salesType === 'online' ? $this->salesCode : null,
             'due_date' => ($this->status === 'loan' && $this->dueDate) ? $this->dueDate : null,
             'proof_of_delivery' => $proofPath,
         ]);
 
         $this->showAddModal = false;
-        $this->reset(['goodId', 'qty', 'price', 'sellPrice', 'recipientId', 'status', 'transactionDate', 'dueDate', 'proofFile']);
+        $this->reset(['goodId', 'qty', 'price', 'sellPrice', 'recipientId', 'status', 'transactionDate', 'dueDate', 'proofFile', 'salesType', 'salesCode']);
     }
 
     public function openEdit(int $id)
@@ -204,6 +212,8 @@ class Goods extends Component
         $this->editStatus = $tx->status ?? 'pending';
         $this->editTransactionDate = $tx->transaction_date ? \Carbon\Carbon::parse($tx->transaction_date)->format('Y-m-d') : '';
         $this->editDueDate = $tx->due_date ? \Carbon\Carbon::parse($tx->due_date)->format('Y-m-d') : '';
+        $this->editSalesType = $tx->sales_type ?? 'offline';
+        $this->editSalesCode = $tx->sales_code;
         $this->existingProof = $tx->proof_of_delivery;
         $this->editProofFile = null;
         $this->showEditModal = true;
@@ -218,6 +228,8 @@ class Goods extends Component
             'editPrice' => 'required|numeric|min:0',
             'editSellPrice' => 'required|numeric|min:0',
             'editStatus' => 'required|string|max:50',
+            'editSalesType' => 'required|in:offline,online',
+            'editSalesCode' => 'required_if:editSalesType,online|nullable|string|max:255',
             'editTransactionDate' => 'required|date',
             'editProofFile' => $requiresProof && !$this->existingProof
                 ? 'required|file|mimes:pdf,jpg,jpeg,png|max:10240'
@@ -273,6 +285,8 @@ class Goods extends Component
                 'total_price' => $this->editQty * $this->editSellPrice,
                 'profit' => ($this->editSellPrice - $this->editPrice) * $this->editQty,
                 'status' => $this->editStatus,
+                'sales_type' => $this->editSalesType,
+                'sales_code' => $this->editSalesType === 'online' ? $this->editSalesCode : null,
                 'transaction_date' => $this->editTransactionDate,
                 'due_date' => ($this->editStatus === 'loan' && $this->editDueDate) ? $this->editDueDate : null,
                 'proof_of_delivery' => $proofPath,
@@ -297,6 +311,8 @@ class Goods extends Component
             'total' => (float) ($tx->total_price ?? 0),
             'profit' => (float) ($tx->profit ?? 0),
             'status' => ucfirst($tx->status ?? 'unknown'),
+            'salesType' => ucfirst($tx->sales_type ?? 'offline'),
+            'salesCode' => $tx->sales_code ?? '-',
             'dueDate' => $tx->due_date ? \Carbon\Carbon::parse($tx->due_date)->format('M d, Y') : null,
             'proof' => $tx->proof_of_delivery,
         ];

@@ -70,6 +70,7 @@
                     <th class="table-header font-label-lg text-label-lg">Date</th>
                     <th class="table-header font-label-lg text-label-lg">Good/Item</th>
                     <th class="table-header font-label-lg text-label-lg">Recipient</th>
+                    <th class="table-header font-label-lg text-label-lg">Sales Type</th>
                     <th class="table-header font-label-lg text-label-lg text-right">Quantity</th>
                     <th class="table-header font-label-lg text-label-lg text-right">Cost Price</th>
                     <th class="table-header font-label-lg text-label-lg text-right">Sell Price</th>
@@ -96,6 +97,14 @@
                         @endif
                     </td>
                     <td class="table-cell">{{ $tx->recipient_name }}</td>
+                    <td class="table-cell">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ ($tx->sales_type === 'online') ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
+                            {{ ucfirst($tx->sales_type ?? 'Offline') }}
+                        </span>
+                        @if($tx->sales_type === 'online' && $tx->sales_code)
+                            <span class="block text-xs text-slate-500 mt-1">{{ $tx->sales_code }}</span>
+                        @endif
+                    </td>
                     <td class="table-cell text-right">
                         {{ $tx->quantity }}
                         @if($tx->good_id && $tx->good && !$tx->good->trashed() && $tx->good->unit_type)
@@ -143,7 +152,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="text-center p-8 text-slate-500">
+                    <td colspan="10" class="text-center p-8 text-slate-500">
                         <span class="material-symbols-outlined text-4xl text-slate-300 mb-2 block">inventory_2</span>
                         No transactions found.
                     </td>
@@ -326,6 +335,21 @@
                         </select>
                         @error('status') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
                     </div>
+                    <!-- Sales Type -->
+                    <div>
+                        <label class="form-label">Sales Type <span class="text-error">*</span></label>
+                        <select class="form-input bg-white appearance-none w-full" wire:model.live="salesType">
+                            <option value="offline">Offline</option>
+                            <option value="online">Online</option>
+                        </select>
+                        @error('salesType') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
+                    </div>
+                    <!-- Sales Code (Conditional) -->
+                    <div x-show="$wire.salesType === 'online'" x-transition>
+                        <label class="form-label">Sales Code <span class="text-error">*</span></label>
+                        <input type="text" wire:model="salesCode" class="form-input w-full" placeholder="e.g., INV-OL-001">
+                        @error('salesCode') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
+                    </div>
                     <!-- Due Date (Conditional) -->
                     <div x-show="$wire.status === 'loan'" x-transition>
                         <label class="form-label">Due Date</label>
@@ -448,6 +472,21 @@
                         </select>
                         @error('editStatus') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
                     </div>
+                    <!-- Sales Type -->
+                    <div>
+                        <label class="form-label">Sales Type <span class="text-error">*</span></label>
+                        <select class="form-input bg-white appearance-none w-full" wire:model.live="editSalesType">
+                            <option value="offline">Offline</option>
+                            <option value="online">Online</option>
+                        </select>
+                        @error('editSalesType') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
+                    </div>
+                    <!-- Sales Code (Conditional) -->
+                    <div x-show="$wire.editSalesType === 'online'" x-transition>
+                        <label class="form-label">Sales Code <span class="text-error">*</span></label>
+                        <input type="text" wire:model="editSalesCode" class="form-input w-full" placeholder="e.g., INV-OL-001">
+                        @error('editSalesCode') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
+                    </div>
                     <!-- Due Date (Conditional) -->
                     <div x-show="$wire.editStatus === 'loan'" x-transition>
                         <label class="form-label">Due Date</label>
@@ -525,6 +564,10 @@
                     <div>{{ data_get($viewRecord, 'unitType') }}</div>
                     <div class="font-semibold">Recipient:</div>
                     <div>{{ data_get($viewRecord, 'recipient') }}</div>
+                    <div class="font-semibold">Sales Type:</div>
+                    <div>{{ data_get($viewRecord, 'salesType') }}</div>
+                    <div class="font-semibold">Sales Code:</div>
+                    <div>{{ data_get($viewRecord, 'salesCode') }}</div>
                     <div class="font-semibold">Quantity:</div>
                     <div>{{ data_get($viewRecord, 'qty') }}</div>
                     <div class="font-semibold">Cost Price:</div>
