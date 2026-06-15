@@ -16,6 +16,7 @@ Route::get('/', Login::class)->name('login');
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
     Route::get('/users', UserManagement::class)->name('users');
+    Route::post('/users/{id}/bypass-split-limit', [\App\Http\Controllers\Admin\BypassController::class, 'toggle'])->name('bypass.toggle');
 });
 
 Route::middleware(['auth', 'user'])->prefix('user')->name('user.')->group(function () {
@@ -28,6 +29,8 @@ Route::middleware(['auth', 'user'])->prefix('user')->name('user.')->group(functi
     Route::get('/groups', \App\Livewire\User\Groups\GroupList::class)->name('groups');
     Route::get('/groups/join/{token}', [\App\Http\Controllers\GroupInviteController::class, 'join'])->name('groups.join');
     Route::get('/groups/{id}', \App\Livewire\User\Groups\GroupDetail::class)->name('group-detail');
+    Route::get('/groups/{id}/podium', \App\Livewire\User\Groups\DebtPodium::class)->name('group-podium');
+    Route::get('/api/groups/{id}/debts', [\App\Http\Controllers\Api\DebtController::class, 'index'])->name('api.groups.debts');
     Route::post('/notifications/read-all', function () {
         auth()->user()?->unreadNotifications->markAsRead();
         return back();

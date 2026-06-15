@@ -8,6 +8,9 @@ use App\Models\GroupExpense;
 use App\Models\GroupExpenseShare;
 use App\Models\User;
 use App\Notifications\AddedToGroupNotification;
+use App\Events\GroupExpenseAdded;
+use App\Events\GroupDataModified;
+use App\Events\GroupDebtMutated;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -72,6 +75,8 @@ class GroupDetail extends Component
             'name' => $this->groupName,
         ]);
 
+        GroupDataModified::dispatch($group);
+
         $this->isEditingName = false;
         session()->flash('success', 'Group name updated.');
     }
@@ -113,6 +118,8 @@ class GroupDetail extends Component
         // Send database notification
         $user->notify(new AddedToGroupNotification(Group::findOrFail($this->groupId), auth()->user()));
 
+        GroupDataModified::dispatch(Group::findOrFail($this->groupId));
+
         $this->reset('newMemberInput');
         
         // Refresh selected members
@@ -129,6 +136,8 @@ class GroupDetail extends Component
         GroupMember::where('group_id', $this->groupId)
             ->where('user_id', $userId)
             ->delete();
+
+        GroupDataModified::dispatch(Group::findOrFail($this->groupId));
 
         // Refresh selected members
         $group = Group::findOrFail($this->groupId);
@@ -169,6 +178,16 @@ class GroupDetail extends Component
             'expenseDate' => 'required|date',
             'selectedMembers' => 'required|array|min:1',
         ]);
+
+        $user = auth()->user();
+        if (!$user->is_admin && !$user->bypass_split_limit) {
+            $key = 'spending_post_count_' . $user->id;
+            $count = \Illuminate\Support\Facades\Cache::get($key, 0);
+            if ($count >= 5) {
+                abort(403, 'Rate limit exceeded. Contact the system administrator.');
+            }
+            \Illuminate\Support\Facades\Cache::put($key, $count + 1, now()->addDay());
+        }
 
         $totalAmount = (float)$this->amount;
 
@@ -228,13 +247,33 @@ class GroupDetail extends Component
         }
 
         $this->showExpenseModal = false;
+        
+        GroupExpenseAdded::dispatch($expense, auth()->user());
+        foreach ($this->selectedMembers as $userId) {
+            $memberUser = User::find($userId);
+            if ($memberUser && $memberUser->id !== auth()->id()) {
+                GroupDebtMutated::dispatch(Group::findOrFail($this->groupId), $memberUser, "A new expense '{$this->description}' was added.");
+            }
+        }
+
         session()->flash('success', 'Expense added successfully.');
         $this->dispatch('spender-updated');
     }
 
     public function deleteExpense(int $expenseId)
     {
-        GroupExpense::findOrFail($expenseId)->delete();
+        $expense = GroupExpense::findOrFail($expenseId);
+        $expenseName = $expense->description;
+        $shares = $expense->shares()->pluck('user_id');
+        $expense->delete();
+
+        foreach ($shares as $userId) {
+            $memberUser = User::find($userId);
+            if ($memberUser && $memberUser->id !== auth()->id()) {
+                GroupDebtMutated::dispatch(Group::findOrFail($this->groupId), $memberUser, "Expense '{$expenseName}' was deleted.");
+            }
+        }
+
         session()->flash('success', 'Expense deleted.');
         $this->dispatch('spender-updated');
     }
@@ -356,6 +395,50 @@ class GroupDetail extends Component
         ];
     }
 
+    // Compute sorted debt leaderboard for the podium
+    public function getDebtPodiumProperty(): array
+    {
+        $group = Group::with('members')->findOrFail($this->groupId);
+        $members = $group->members;
+
+        $balances = [];
+        foreach ($members as $member) {
+            $balances[$member->id] = 0.0;
+        }
+
+        $expenses = GroupExpense::where('group_id', $this->groupId)
+            ->with('shares')
+            ->get();
+
+        foreach ($expenses as $expense) {
+            if (isset($balances[$expense->paid_by])) {
+                $balances[$expense->paid_by] += (float)$expense->amount;
+            }
+            foreach ($expense->shares as $share) {
+                if (isset($balances[$share->user_id])) {
+                    $balances[$share->user_id] -= (float)$share->owed_amount;
+                }
+            }
+        }
+
+        $results = [];
+        foreach ($members as $member) {
+            // total_debt > 0 means they owe money (negative balance)
+            $debt = -round($balances[$member->id], 2);
+            $results[] = [
+                'user_id'    => $member->id,
+                'name'       => $member->name,
+                'total_debt' => $debt,
+                'initials'   => strtoupper(substr($member->name, 0, 2)),
+            ];
+        }
+
+        // Sort descending by debt (highest debtor first)
+        usort($results, fn($a, $b) => $b['total_debt'] <=> $a['total_debt']);
+
+        return $results;
+    }
+
     public function render()
     {
         $group = Group::with('members')->findOrFail($this->groupId);
@@ -369,10 +452,11 @@ class GroupDetail extends Component
         $this->chartData = $this->calculateChartData();
 
         return view('livewire.user.groups.group-detail', [
-            'group' => $group,
-            'expenses' => $expenses,
-            'balances' => $settlementsData['balances'],
-            'instructions' => $settlementsData['instructions'],
+            'group'       => $group,
+            'expenses'    => $expenses,
+            'balances'    => $settlementsData['balances'],
+            'instructions'=> $settlementsData['instructions'],
+            'debtPodium'  => $this->debtPodium,
         ]);
     }
 }

@@ -52,6 +52,160 @@
         </div>
     </div>
 
+    {{-- ====================== DEBT PODIUM ====================== --}}
+    @php
+        $debtors   = array_values(array_filter($debtPodium, fn($d) => $d['total_debt'] > 0));
+        $balanced  = array_values(array_filter($debtPodium, fn($d) => $d['total_debt'] <= 0));
+        $top3      = array_slice($debtors, 0, 3);
+        $rest      = array_slice($debtors, 3);
+
+        // Visual podium order: position 0=silver(2nd), 1=gold(1st), 2=bronze(3rd)
+        $slots = [
+            0 => ['rank'=>2, 'colH'=>'80px',  'bg'=>'#94a3b8', 'label'=>'#334155'],
+            1 => ['rank'=>1, 'colH'=>'112px', 'bg'=>'#f59e0b', 'label'=>'#78350f'],
+            2 => ['rank'=>3, 'colH'=>'56px',  'bg'=>'#b45309', 'label'=>'#fef3c7'],
+        ];
+        $animalEmojis = ['🐻','🦊','🐱'];
+        $humanEmojis  = ['🧑','👩','🧑‍💼'];
+    @endphp
+
+    <div class="mb-8 rounded-2xl border border-slate-200 overflow-hidden shadow-sm" style="background:linear-gradient(160deg,#0f172a 0%,#1e293b 55%,#162032 100%)">
+
+        {{-- Card Header --}}
+        <div class="flex items-center justify-between px-6 pt-5 pb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgba(251,191,36,0.15)">
+                    <span class="material-symbols-outlined" style="color:#fbbf24;font-size:20px">emoji_events</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base leading-tight" style="color:#f8fafc">Debt Podium</h3>
+                    <p class="text-xs" style="color:#94a3b8">Ranked by outstanding balance</p>
+                </div>
+            </div>
+            <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background:rgba(239,68,68,0.15);color:#fca5a5">
+                {{ count($debtors) }} in debt
+            </span>
+        </div>
+
+        @if(count($debtors) > 0)
+
+            {{-- ---- TOP 3 PODIUM ---- --}}
+            <div class="flex items-end justify-center gap-3 px-6 pt-4" style="min-height:220px">
+                @foreach($slots as $posIdx => $slot)
+                    @php
+                        $rank   = $slot['rank'];
+                        $person = $top3[$rank - 1] ?? null;
+                    @endphp
+                    @if($person)
+                        <div class="flex flex-col items-center" style="min-width:96px;max-width:112px">
+
+                            {{-- Crown badge for #1 --}}
+                            @if($rank === 1)
+                                <div class="text-2xl mb-1" title="Top Debtor">👑</div>
+                            @else
+                                <div style="height:32px"></div>
+                            @endif
+
+                            {{-- Animated animal avatar --}}
+                            <div class="relative flex items-center justify-center rounded-full mb-2 border-2"
+                                 style="
+                                     width:64px;height:64px;
+                                     background:rgba(255,255,255,0.07);
+                                     border-color:{{ $slot['bg'] }};
+                                     animation: podiumFloat{{ $rank }} {{ $rank===1?'2':'3' }}s ease-in-out infinite;
+                                 ">
+                                <span style="font-size:30px;line-height:1">{{ $animalEmojis[$rank-1] }}</span>
+                            </div>
+
+                            {{-- Name --}}
+                            <p class="text-xs font-semibold text-center mb-0.5 truncate w-full" style="color:#f1f5f9;max-width:96px">
+                                {{ $person['name'] }}
+                            </p>
+
+                            {{-- Debt amount --}}
+                            <p class="text-xs font-bold text-center mb-2" style="color:#fca5a5">
+                                ${{ number_format($person['total_debt'], 2) }}
+                            </p>
+
+                            {{-- Podium block --}}
+                            <div class="w-full rounded-t-lg flex items-start justify-center pt-2 relative overflow-hidden"
+                                 style="height:{{ $slot['colH'] }};background:{{ $slot['bg'] }}">
+                                <span class="font-black text-lg relative" style="z-index:2;color:{{ $slot['label'] }}">#{{ $rank }}</span>
+                                <div class="absolute inset-0" style="background:rgba(255,255,255,0.12)"></div>
+                            </div>
+                        </div>
+                    @else
+                        {{-- Empty slot placeholder --}}
+                        <div style="min-width:96px"></div>
+                    @endif
+                @endforeach
+            </div>
+
+            {{-- ---- RANK 4+ LIST ---- --}}
+            @if(count($rest) > 0)
+                <div class="mx-6 mt-4 space-y-1.5">
+                    @foreach($rest as $idx => $person)
+                        <div class="flex items-center justify-between rounded-xl px-4 py-2.5"
+                             style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08)">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-bold w-6 text-right" style="color:#64748b">#{{ $idx + 4 }}</span>
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-base"
+                                     style="background:rgba(239,68,68,0.18)">🐾</div>
+                                <span class="text-sm font-medium" style="color:#e2e8f0">{{ $person['name'] }}</span>
+                            </div>
+                            <span class="text-sm font-bold" style="color:#fca5a5">${{ number_format($person['total_debt'], 2) }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+        @else
+            {{-- No debtors state --}}
+            <div class="flex flex-col items-center justify-center py-10">
+                <span class="text-5xl mb-3">🎉</span>
+                <p class="font-semibold text-sm" style="color:#94a3b8">Everyone is all settled up!</p>
+                <p class="text-xs mt-1" style="color:#475569">Add expenses to start tracking balances.</p>
+            </div>
+        @endif
+
+        {{-- ---- BALANCED / CREDITORS SECTION ---- --}}
+        @if(count($balanced) > 0)
+            <div class="mx-6 mt-5 pb-5" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:16px">
+                <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:#64748b">
+                    Settled & Receiving ✅
+                </p>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($balanced as $person)
+                        @php $isCredit = $person['total_debt'] < 0; @endphp
+                        <div class="flex items-center gap-2 rounded-full px-3 py-1.5"
+                             style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2)">
+                            <span class="text-base leading-none">{{ $humanEmojis[array_search($person, $balanced) % 3] }}</span>
+                            <span class="text-xs font-semibold" style="color:#6ee7b7">{{ $person['name'] }}</span>
+                            @if($isCredit)
+                                <span class="text-xs font-bold" style="color:#34d399">
+                                    +${{ number_format(abs($person['total_debt']), 2) }}
+                                </span>
+                            @else
+                                <span class="text-xs" style="color:#475569">Balanced</span>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+    </div>
+    {{-- =================== END DEBT PODIUM =================== --}}
+
+    {{-- CSS keyframes for float animation --}}
+    <style>
+        @keyframes podiumFloat1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+        @keyframes podiumFloat2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+        @keyframes podiumFloat3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+    </style>
+
+
+
     {{-- Dashboard Grid Layout --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         

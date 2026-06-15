@@ -11,10 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
+    ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'user' => \App\Http\Middleware\EnsureUserIsRegularUser::class,
+            'spend_fp_limiter' => \App\Http\Middleware\SpendingRateLimiter::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
