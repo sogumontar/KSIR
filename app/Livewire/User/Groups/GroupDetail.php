@@ -40,7 +40,10 @@ class GroupDetail extends Component
     
     public bool $showExpenseModal = false;
 
-    protected $listeners = ['refreshComponent' => '$refresh'];
+    public bool $showSettleModal = false;
+    public ?int $settleDebtorId = null;
+    public ?int $settleCreditorId = null;
+    public string $settleAmount = '';
 
     public function mount(int $id)
     {
@@ -64,7 +67,49 @@ class GroupDetail extends Component
         $this->selectedMembers = $group->members->pluck('id')->toArray();
     }
 
+    public function openSettleModal(int $debtorId, int $creditorId, float $amount)
+    {
+        $this->settleDebtorId = $debtorId;
+        $this->settleCreditorId = $creditorId;
+        $this->settleAmount = (string) round($amount, 2);
+        $this->showSettleModal = true;
+    }
+
+    public function saveSettlement()
+    {
+        $this->validate([
+            'settleDebtorId' => 'required|exists:users,id',
+            'settleCreditorId' => 'required|exists:users,id',
+            'settleAmount' => 'required|numeric|min:0.01',
+        ]);
+
+        $group = Group::findOrFail($this->groupId);
+
+        $expense = GroupExpense::create([
+            'group_id' => $this->groupId,
+            'paid_by' => $this->settleDebtorId, // Debtor pays
+            'description' => 'Payment / Settlement',
+            'amount' => $this->settleAmount,
+            'split_mode' => 'exact',
+            'expense_date' => date('Y-m-d'),
+        ]);
+
+        // Creditor receives the payment (owes the expense amount to the debtor)
+        GroupExpenseShare::create([
+            'group_expense_id' => $expense->id,
+            'user_id' => $this->settleCreditorId,
+            'owed_amount' => $this->settleAmount,
+        ]);
+
+        GroupExpenseAdded::dispatch($expense, auth()->user());
+        GroupDebtMutated::dispatch($group, auth()->user(), 'A payment settlement was recorded.');
+
+        $this->showSettleModal = false;
+        session()->flash('success', 'Payment recorded successfully.');
+    }
+
     public function saveGroupName()
+
     {
         $this->validate([
             'groupName' => 'required|string|min:3|max:100',

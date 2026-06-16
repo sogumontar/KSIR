@@ -52,6 +52,71 @@
         </div>
     </div>
 
+    {{-- ====================== SETTLE UP MODAL ====================== --}}
+    @if($showSettleModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" wire:click="$set('showSettleModal', false)"></div>
+            <div class="bg-white rounded-2xl w-full max-w-md mx-auto shadow-xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]">
+                <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="font-headline-md font-bold text-slate-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-green-600">payments</span>
+                        Record Payment
+                    </h3>
+                    <button wire:click="$set('showSettleModal', false)" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                    <form wire:submit.prevent="saveSettlement" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Who is paying?</label>
+                            <select wire:model="settleDebtorId" class="w-full rounded-xl border-slate-200 focus:border-primary focus:ring focus:ring-primary/20 transition-shadow">
+                                <option value="">Select Payer</option>
+                                @foreach($group->members as $member)
+                                    <option value="{{ $member->id }}">{{ $member->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('settleDebtorId') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="flex justify-center my-2">
+                            <span class="material-symbols-outlined text-slate-300 text-3xl">arrow_downward</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Who is receiving?</label>
+                            <select wire:model="settleCreditorId" class="w-full rounded-xl border-slate-200 focus:border-primary focus:ring focus:ring-primary/20 transition-shadow">
+                                <option value="">Select Receiver</option>
+                                @foreach($group->members as $member)
+                                    <option value="{{ $member->id }}">{{ $member->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('settleCreditorId') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Amount</label>
+                            <div class="relative">
+                                <input type="number" step="0.01" wire:model="settleAmount" class="w-full pl-8 pr-4 py-3 rounded-xl border-slate-200 focus:border-primary focus:ring focus:ring-primary/20 transition-shadow font-mono text-lg font-bold" placeholder="0.00">
+                            </div>
+                            @error('settleAmount') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="flex justify-end gap-3 mt-6">
+                            <button type="button" wire:click="$set('showSettleModal', false)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors text-sm font-medium">Cancel</button>
+                            <button type="submit" class="px-3 py-2 bg-primary hover:bg-secondary text-white rounded-lg transition-colors text-sm font-medium">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ====================== EXPENSE MODAL ====================== --}}
+    @if($showExpenseModal)
+        {{-- ... (Rest of the modal code) --}}
+    @endif
+
     {{-- ====================== DEBT PODIUM ====================== --}}
     @php
         $debtors   = array_values(array_filter($debtPodium, fn($d) => $d['total_debt'] > 0));
@@ -124,7 +189,7 @@
 
                             {{-- Debt amount --}}
                             <p class="text-xs font-bold text-center mb-2" style="color:#fca5a5">
-                                ${{ number_format($person['total_debt'], 2) }}
+                                Rp{{ number_format($person['total_debt'], 2) }}
                             </p>
 
                             {{-- Podium block --}}
@@ -153,7 +218,7 @@
                                      style="background:rgba(239,68,68,0.18)">🐾</div>
                                 <span class="text-sm font-medium" style="color:#e2e8f0">{{ $person['name'] }}</span>
                             </div>
-                            <span class="text-sm font-bold" style="color:#fca5a5">${{ number_format($person['total_debt'], 2) }}</span>
+                            <span class="text-sm font-bold" style="color:#fca5a5">Rp{{ number_format($person['total_debt'], 2) }}</span>
                         </div>
                     @endforeach
                 </div>
@@ -183,7 +248,7 @@
                             <span class="text-xs font-semibold" style="color:#6ee7b7">{{ $person['name'] }}</span>
                             @if($isCredit)
                                 <span class="text-xs font-bold" style="color:#34d399">
-                                    +${{ number_format(abs($person['total_debt']), 2) }}
+                                    +Rp{{ number_format(abs($person['total_debt']), 2) }}
                                 </span>
                             @else
                                 <span class="text-xs" style="color:#475569">Balanced</span>
@@ -208,17 +273,17 @@
 
     {{-- Dashboard Grid Layout --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {{-- Left 2 Columns: Analytics & Expenses Log --}}
         <div class="lg:col-span-2 space-y-8">
-            
+
             {{-- Spender Analytics Chart --}}
             <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
                 <h3 class="font-headline-md text-headline-md text-slate-900 mb-6 flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary">bar_chart</span>
                     Spending footprint (Who Paid)
                 </h3>
-                <div 
+                <div
                     x-data="{
                         chart: null,
                         initChart() {
@@ -229,7 +294,7 @@
                             if (this.chart) this.chart.destroy();
                             const ctx = document.getElementById('spenderChart');
                             if (!ctx) return;
-                            
+
                             const data = $wire.chartData;
                             const labels = data ? (data.labels || []) : [];
                             const values = data ? (data.values || []) : [];
@@ -267,7 +332,7 @@
                                 }
                             });
                         }
-                    }" 
+                    }"
                     x-init="initChart()"
                     @spender-updated.window="initChart()"
                     wire:ignore
@@ -286,7 +351,7 @@
                     </h3>
                     <span class="text-xs text-slate-500 font-medium">{{ $expenses->count() }} expenses</span>
                 </div>
-                
+
                 <div class="divide-y divide-slate-100">
                     @forelse($expenses as $expense)
                         <div class="p-6 hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -299,26 +364,26 @@
                                 </div>
                                 <div class="text-sm text-slate-500 space-y-1">
                                     <p>Paid by <strong class="text-slate-700 font-medium">{{ $expense->payer?->name }}</strong> on {{ $expense->expense_date->format('M d, Y') }}</p>
-                                    
+
                                     {{-- Participant shares inline --}}
                                     <div class="flex flex-wrap gap-1.5 mt-2 pt-1 border-t border-slate-100">
                                         <span class="text-xs text-slate-400 font-medium self-center mr-1">Involved:</span>
                                         @foreach($expense->shares as $share)
                                             <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs" title="{{ $share->user?->name }}">
-                                                {{ $share->user?->name }}: <span class="font-semibold">${{ number_format($share->owed_amount, 2) }}</span>
+                                                {{ $share->user?->name }}: <span class="font-semibold">Rp{{ number_format($share->owed_amount, 2) }}</span>
                                             </span>
                                         @endforeach
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="flex items-center gap-4 shrink-0 justify-between md:justify-end">
                                 <div class="text-right">
-                                    <span class="text-lg font-bold text-slate-900 block">${{ number_format($expense->amount, 2) }}</span>
+                                    <span class="text-lg font-bold text-slate-900 block">Rp{{ number_format($expense->amount, 2) }}</span>
                                 </div>
                                 @if($expense->paid_by === auth()->id() || $group->created_by === auth()->id())
-                                    <button 
-                                        wire:click="deleteExpense({{ $expense->id }})" 
+                                    <button
+                                        wire:click="deleteExpense({{ $expense->id }})"
                                         wire:confirm="Are you sure you want to delete this expense? Outstanding balances will automatically recalculate."
                                         class="p-2 text-slate-400 hover:text-red-600 transition-colors rounded-lg"
                                         title="Delete expense"
@@ -340,7 +405,7 @@
 
         {{-- Right 1 Column: Members, Balances & Settlements --}}
         <div class="space-y-8">
-            
+
             {{-- Net Balances & Settlements Summary --}}
             <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
@@ -349,7 +414,7 @@
                         Balances & Settlements
                     </h3>
                 </div>
-                
+
                 {{-- Balances list --}}
                 <div class="p-6 border-b border-slate-100">
                     <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Member Balances</h4>
@@ -361,11 +426,11 @@
                             <div class="flex items-center justify-between text-sm">
                                 <span class="text-slate-700 font-medium">{{ $member->name }}</span>
                                 @if($bal > 0)
-                                    <span class="text-green-600 font-bold font-mono">+${{ number_format($bal, 2) }}</span>
+                                    <span class="text-green-600 font-bold font-mono">+Rp{{ number_format($bal, 2) }}</span>
                                 @elseif($bal < 0)
-                                    <span class="text-red-500 font-bold font-mono">-${{ number_format(abs($bal), 2) }}</span>
+                                    <span class="text-red-500 font-bold font-mono">-Rp{{ number_format(abs($bal), 2) }}</span>
                                 @else
-                                    <span class="text-slate-400 font-semibold font-mono">$0.00</span>
+                                    <span class="text-slate-400 font-semibold font-mono">Rp0.00</span>
                                 @endif
                             </div>
                         @endforeach
@@ -381,12 +446,15 @@
                                 <span class="material-symbols-outlined text-slate-400 text-sm mt-0.5">swap_horiz</span>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-slate-700 font-medium">
-                                        <span class="font-bold text-red-500">{{ $inst['debtor_name'] }}</span> 
-                                        owes 
+                                        <span class="font-bold text-red-500">{{ $inst['debtor_name'] }}</span>
+                                        owes
                                         <span class="font-bold text-green-600">{{ $inst['creditor_name'] }}</span>
                                     </p>
-                                    <span class="text-slate-900 font-bold block mt-1 font-mono text-base">${{ number_format($inst['amount'], 2) }}</span>
+                                    <span class="text-slate-900 font-bold block mt-1 font-mono text-base">Rp{{ number_format($inst['amount'], 2) }}</span>
                                 </div>
+                                <button wire:click="openSettleModal({{ $inst['debtor_id'] }}, {{ $inst['creditor_id'] }}, {{ $inst['amount'] }})" class="mt-1 shrink-0 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 font-semibold text-xs rounded-lg transition-colors border border-green-200">
+                                    Settle Up
+                                </button>
                             </div>
                         @empty
                             <div class="text-center py-4 text-slate-400 text-xs">
@@ -434,11 +502,11 @@
                                     <span class="text-slate-400 text-xs block">Code: {{ $member->unique_code ?? $member->id }}</span>
                                 </div>
                             </div>
-                            
+
                             @if($member->id !== auth()->id())
                                 {{-- Show remove button to group members/creator --}}
-                                <button 
-                                    wire:click="removeMember({{ $member->id }})" 
+                                <button
+                                    wire:click="removeMember({{ $member->id }})"
                                     wire:confirm="Are you sure you want to remove {{ $member->name }} from the group?"
                                     class="p-1 text-slate-300 hover:text-red-600 transition-colors rounded"
                                     title="Remove from group"
@@ -451,9 +519,9 @@
                 </div>
 
                 <div class="p-6 bg-slate-50 border-t border-slate-100 text-center">
-                    <button 
-                        wire:click="leaveGroup" 
-                        wire:confirm="Are you sure you want to leave this group?" 
+                    <button
+                        wire:click="leaveGroup"
+                        wire:confirm="Are you sure you want to leave this group?"
                         class="text-xs text-red-600 font-semibold hover:text-red-700 transition-colors flex items-center gap-1 mx-auto"
                     >
                         <span class="material-symbols-outlined text-sm">logout</span>
@@ -465,9 +533,9 @@
     </div>
 
     {{-- Add Expense Modal --}}
-    <div 
-        x-data="{ open: @entangle('showExpenseModal'), splitMode: @entangle('splitMode') }" 
-        x-show="open" 
+    <div
+        x-data="{ open: @entangle('showExpenseModal'), splitMode: @entangle('splitMode') }"
+        x-show="open"
         class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0"
@@ -477,8 +545,8 @@
         x-transition:leave-end="opacity-0"
         x-cloak
     >
-        <div 
-            @click.away="open = false" 
+        <div
+            @click.away="open = false"
             class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden"
             x-transition:enter="transition ease-out duration-300 transform scale-95"
             x-transition:enter-start="opacity-0 scale-95"
@@ -494,7 +562,7 @@
                 </button>
             </div>
             <form wire:submit.prevent="saveExpense" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
-                
+
                 {{-- Description --}}
                 <div>
                     <label class="form-label">Description <span class="text-error">*</span></label>
@@ -541,7 +609,7 @@
                 <div class="border-t border-slate-100 pt-4">
                     <label class="form-label mb-2 block font-semibold text-slate-800">Select participating members:</label>
                     @error('selectedMembers') <span class="text-error text-sm block mb-2">{{ $message }}</span> @enderror
-                    
+
                     <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
                         @foreach($group->members as $member)
                             <div class="flex items-center justify-between gap-4">
@@ -549,7 +617,7 @@
                                     <input type="checkbox" value="{{ $member->id }}" wire:model.live="selectedMembers" class="rounded border-slate-300 text-primary focus:ring-primary w-4 h-4">
                                     <span>{{ $member->name }}</span>
                                 </label>
-                                
+
                                 {{-- exact split amount inputs --}}
                                 <div x-show="splitMode === 'exact'" class="w-32" x-transition>
                                     @if(in_array($member->id, $selectedMembers))
@@ -557,12 +625,12 @@
                                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                                 <span class="text-slate-400 text-xs">$</span>
                                             </div>
-                                            <input 
-                                                type="number" 
-                                                step="0.01" 
-                                                min="0.00" 
-                                                wire:model.live="exactAmounts.{{ $member->id }}" 
-                                                class="form-input pl-6 w-full text-right bg-white text-xs" 
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0.00"
+                                                wire:model.live="exactAmounts.{{ $member->id }}"
+                                                class="form-input pl-6 w-full text-right bg-white text-xs"
                                                 placeholder="0.00"
                                             >
                                         </div>
