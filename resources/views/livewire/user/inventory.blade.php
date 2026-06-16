@@ -169,6 +169,7 @@
                         <option value="unit">Krat</option>
                         <option value="unit">Slop</option>
                         <option value="unit">Lusin</option>
+                        <option value="unit">Kardus</option>
                     </select>
                     @error('unitType') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                 </div>
@@ -275,6 +276,7 @@
                         <option value="unit">Krat</option>
                         <option value="unit">Slop</option>
                        <option value="unit">Lusin</option>
+                       <option value="unit">Kardus</option>
                     </select>
                     @error('editUnitType') <span class="text-error text-sm mt-1 block">{{ $message }}</span> @enderror
                 </div>

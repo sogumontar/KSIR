@@ -257,7 +257,7 @@
         <!-- Overlay -->
         <div @click="showAddModal = false" class="fixed inset-0 modal-overlay" x-show="showAddModal" x-transition.opacity></div>
         <!-- Dialog -->
-        <div class="relative bg-white w-full max-w-2xl rounded-xl modal-content flex flex-col max-h-[921px]" x-show="showAddModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 scale-95 translate-y-4" x-transition:leave-start="opacity-100 scale-100 translate-y-0">
+        <div class="relative bg-white w-full max-w-2xl rounded-xl modal-content flex flex-col max-h-[90vh]" x-show="showAddModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 scale-95 translate-y-4" x-transition:leave-start="opacity-100 scale-100 translate-y-0">
             <!-- Modal Header -->
             <div class="p-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 rounded-t-xl">
                 <h3 class="font-headline-md text-headline-md text-slate-900 m-0">Add New Record</h3>
@@ -400,7 +400,7 @@
         <!-- Overlay -->
         <div @click="showEditModal = false" class="fixed inset-0 modal-overlay" x-show="showEditModal" x-transition.opacity></div>
         <!-- Dialog -->
-        <div class="relative bg-white w-full max-w-2xl rounded-xl modal-content flex flex-col max-h-[921px]" x-show="showEditModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 scale-95 translate-y-4" x-transition:leave-start="opacity-100 scale-100 translate-y-0">
+        <div class="relative bg-white w-full max-w-2xl rounded-xl modal-content flex flex-col max-h-[90vh]" x-show="showEditModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 scale-95 translate-y-4" x-transition:leave-start="opacity-100 scale-100 translate-y-0">
             <!-- Modal Header -->
             <div class="p-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 rounded-t-xl">
                 <h3 class="font-headline-md text-headline-md text-slate-900 m-0">Update Record</h3>
@@ -547,14 +547,14 @@
         <!-- Overlay -->
         <div @click="showViewModal = false" class="fixed inset-0 modal-overlay" x-show="showViewModal" x-transition.opacity></div>
         <!-- Dialog -->
-        <div class="relative bg-white w-full max-w-2xl rounded-xl modal-content flex flex-col" x-show="showViewModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100 scale-100" x-transition:enter-start="opacity-0 scale-95">
+        <div class="relative bg-white w-full max-w-2xl rounded-xl modal-content flex flex-col max-h-[90vh]" x-show="showViewModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100 scale-100" x-transition:enter-start="opacity-0 scale-95">
             <div class="p-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 rounded-t-xl">
                 <h3 class="font-headline-md text-headline-md text-slate-900 m-0">Transaction Details</h3>
                 <button @click="showViewModal = false" class="text-slate-400 hover:text-slate-700 transition-colors p-2 rounded-full hover:bg-slate-200 flex items-center justify-center">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <div class="p-8 space-y-4">
+            <div class="p-8 space-y-4 overflow-y-auto custom-scrollbar">
                 <div class="grid grid-cols-2 gap-4 text-body-md">
                     <div class="font-semibold">Date:</div>
                     <div>{{ data_get($viewRecord, 'date') }}</div>
