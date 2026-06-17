@@ -5,15 +5,23 @@ namespace App\Livewire\User;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\WithPagination;
+use App\Livewire\Concerns\WithTableFiltering;
 
 #[Layout('components.layouts.user')]
 #[Title('Sales Monitoring - Inventory Pro')]
 class SalesHistory extends Component
 {
-    public string $dateFrom = '';
-    public string $dateTo = '';
+    use WithPagination, WithTableFiltering;
+
     public string $period = 'Monthly';
     public string $staffFilter = '';
+
+    public function mount()
+    {
+        $this->sortColumn = 'transaction_date';
+        $this->sortDirection = 'desc';
+    }
 
     public function applyFilters()
     {
@@ -31,15 +39,11 @@ class SalesHistory extends Component
     {
         $query = \App\Models\Transaction::where('user_id', auth()->id());
 
-        if ($this->dateFrom) {
-            $query->whereDate('transaction_date', '>=', $this->dateFrom);
-        }
-        if ($this->dateTo) {
-            $query->whereDate('transaction_date', '<=', $this->dateTo);
-        }
         if ($this->staffFilter) {
             $query->whereHas('user', fn($q) => $q->where('name', $this->staffFilter));
         }
+
+        $query = $this->applyTableFilters($query, 'transaction_date');
 
         return $query;
     }
@@ -94,15 +98,11 @@ class SalesHistory extends Component
         return ['labels' => $labels, 'values' => $values];
     }
 
-    public function mount()
-    {
-    }
-
     public function render()
     {
         $filteredQuery = $this->getFilteredQuery();
 
-        $transactions = $filteredQuery->clone()->latest()->paginate(10);
+        $transactions = $filteredQuery->clone()->paginate(10);
 
         $allFiltered = $filteredQuery->clone()->get();
         $totalRevenue = $allFiltered->sum('total_price');

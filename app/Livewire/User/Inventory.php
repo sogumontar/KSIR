@@ -8,12 +8,19 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use App\Models\Good;
+use App\Livewire\Concerns\WithTableFiltering;
 
 #[Layout('components.layouts.user')]
 #[Title('Goods Inventory - Inventory Pro')]
 class Inventory extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads, WithTableFiltering;
+
+    public function mount()
+    {
+        $this->sortColumn = 'name';
+        $this->sortDirection = 'asc';
+    }
 
     public bool $showAddModal = false;
     public bool $showEditModal = false;
@@ -174,19 +181,17 @@ class Inventory extends Component
         session()->flash('message', 'Good deleted successfully.');
     }
 
-    public function mount()
-    {
-    }
-
     public function render()
     {
-        $goods = Good::where('user_id', auth()->id())
+        $query = Good::where('user_id', auth()->id())
             ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%')
                       ->orWhere('description', 'like', '%' . $this->search . '%');
-            })
-            ->latest()
-            ->paginate(10);
+            });
+
+        $query = $this->applyTableFilters($query, 'created_at');
+
+        $goods = $query->paginate(10);
 
         return view('livewire.user.inventory', [
             'goods' => $goods,

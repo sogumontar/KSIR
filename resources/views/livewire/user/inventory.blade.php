@@ -5,20 +5,35 @@
     showDeleteModal: @entangle('showDeleteModal')
 }">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-8">
         <div>
             <h2 class="font-headline-lg text-headline-lg text-slate-900 m-0">Goods Inventory</h2>
             <p class="text-sm text-slate-500 mt-1">Manage physical goods, prices, and stock levels.</p>
         </div>
-        <div class="flex items-center gap-4 flex-wrap">
-            <div class="relative w-full sm:w-64">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-                <input wire:model.live.debounce.300ms="search" class="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all" placeholder="Search goods...">
+        <div class="flex flex-col md:flex-row items-end gap-md">
+            <!-- Date Range Filter -->
+            <div class="flex flex-col sm:flex-row items-center gap-2">
+                <div class="flex items-center gap-2 bg-white border border-slate-300 rounded-lg px-3 py-1.5 h-[42px]">
+                    <span class="material-symbols-outlined text-slate-400 text-sm">calendar_today</span>
+                    <input wire:model.live="dateFrom" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                    <span class="text-slate-400 text-sm">to</span>
+                    <input wire:model.live="dateTo" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                </div>
+                <button wire:click="resetTableFilters" class="btn-ghost px-3 h-[42px] border border-slate-300 bg-white" title="Reset Filters">
+                    <span class="material-symbols-outlined">restart_alt</span>
+                </button>
             </div>
-            <button wire:click="openAdd" class="btn-primary gap-2">
-                <span class="material-symbols-outlined">add</span>
-                Add New Good
-            </button>
+
+            <div class="flex items-center gap-4 flex-wrap w-full md:w-auto">
+                <div class="relative w-full sm:w-64 h-[42px]">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                    <input wire:model.live.debounce.300ms="search" class="w-full h-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all" placeholder="Search goods...">
+                </div>
+                <button wire:click="openAdd" class="btn-primary gap-2 h-[42px] w-full sm:w-auto justify-center">
+                    <span class="material-symbols-outlined">add</span>
+                    Add New Good
+                </button>
+            </div>
         </div>
     </div>
 
@@ -36,11 +51,16 @@
                 <thead>
                     <tr>
                         <th class="table-header font-label-lg text-label-lg">Image</th>
-                        <th class="table-header font-label-lg text-label-lg">Name</th>
-                        <th class="table-header font-label-lg text-label-lg">Description</th>
-                        <th class="table-header font-label-lg text-label-lg text-right">Unit Price</th>
-                        <th class="table-header font-label-lg text-label-lg">Unit Type</th>
-                        <th class="table-header font-label-lg text-label-lg text-right">Stock Level</th>
+                        @foreach(['name' => 'Name', 'description' => 'Description', 'price' => 'Unit Price', 'unit_type' => 'Unit Type', 'stock' => 'Stock Level'] as $col => $label)
+                            <th class="table-header font-label-lg text-label-lg cursor-pointer hover:bg-slate-200 transition-colors" wire:click="sort('{{ $col }}')">
+                                <div class="flex items-center gap-1 {{ in_array($label, ['Unit Price', 'Stock Level']) ? 'justify-end' : '' }}">
+                                    {{ $label }}
+                                    @if($sortColumn === $col)
+                                        <span class="material-symbols-outlined text-sm">{{ $sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                    @endif
+                                </div>
+                            </th>
+                        @endforeach
                         <th class="table-header font-label-lg text-label-lg text-center">Actions</th>
                     </tr>
                 </thead>

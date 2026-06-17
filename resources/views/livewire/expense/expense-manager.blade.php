@@ -1,20 +1,38 @@
 <!-- resources/views/livewire/expense/expense-manager.blade.php -->
 <div x-data="{ showModal: @entangle('showModal') }">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-md mb-8">
-        <h2 class="font-headline-lg text-headline-lg text-slate-900 m-0">Personal Expenses</h2>
-        <div class="flex items-center gap-md flex-col sm:flex-row flex-wrap">
-            <input type="text" class="form-input bg-white appearance-none text-sm py-2.5 px-4 rounded-lg border border-slate-300 w-full sm:w-auto min-h-[42px]" placeholder="Search description…" wire:model.debounce.500ms="search">
-            <select class="form-input bg-white appearance-none text-sm py-2.5 px-4 rounded-lg border border-slate-300 w-full sm:w-auto min-h-[42px]" wire:model.live="dateFilter">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-            </select>
-            <button wire:click="showCreateModal" class="btn-primary gap-2 w-full sm:w-auto justify-center">
-                <span class="material-symbols-outlined">add</span>
-                Add Expense
-            </button>
+    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-md mb-8">
+        <div>
+            <h2 class="font-headline-lg text-headline-lg text-slate-900 m-0">Personal Expenses</h2>
+        </div>
+        
+        <div class="flex flex-col md:flex-row items-end gap-md">
+            <!-- Date Range Filter -->
+            <div class="flex flex-col sm:flex-row items-center gap-2">
+                <div class="flex items-center gap-2 bg-white border border-slate-300 rounded-lg px-3 py-1.5 h-[42px]">
+                    <span class="material-symbols-outlined text-slate-400 text-sm">calendar_today</span>
+                    <input wire:model.live="dateFrom" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                    <span class="text-slate-400 text-sm">to</span>
+                    <input wire:model.live="dateTo" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                </div>
+                <button wire:click="resetTableFilters" class="btn-ghost px-3 h-[42px] border border-slate-300 bg-white" title="Reset Filters">
+                    <span class="material-symbols-outlined">restart_alt</span>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-md flex-col sm:flex-row flex-wrap w-full md:w-auto">
+                <input type="text" class="form-input bg-white appearance-none text-sm py-2.5 px-4 rounded-lg border border-slate-300 w-full sm:w-auto min-h-[42px]" placeholder="Search description…" wire:model.debounce.500ms="search">
+                <select class="form-input bg-white appearance-none text-sm py-2.5 px-4 rounded-lg border border-slate-300 w-full sm:w-auto min-h-[42px]" wire:model.live="dateFilter">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+                <button wire:click="showCreateModal" class="btn-primary gap-2 w-full sm:w-auto justify-center">
+                    <span class="material-symbols-outlined">add</span>
+                    Add Expense
+                </button>
+            </div>
         </div>
     </div>
 
@@ -85,11 +103,16 @@
                 <thead>
                     <tr>
                         <th class="table-header font-label-lg text-label-lg w-12"><input type="checkbox" wire:model.live="selectAll" class="form-checkbox rounded" /></th>
-                        <th class="table-header font-label-lg text-label-lg">Date</th>
-                        <th class="table-header font-label-lg text-label-lg">Category</th>
-                        <th class="table-header font-label-lg text-label-lg">Description</th>
-                        <th class="table-header font-label-lg text-label-lg">Location</th>
-                        <th class="table-header font-label-lg text-label-lg text-right">Amount</th>
+                        @foreach(['date' => 'Date', 'category_id' => 'Category', 'description' => 'Description', 'location' => 'Location', 'amount' => 'Amount'] as $col => $label)
+                            <th class="table-header font-label-lg text-label-lg cursor-pointer hover:bg-slate-200 transition-colors" wire:click="sort('{{ $col }}')">
+                                <div class="flex items-center gap-1 {{ $label === 'Amount' ? 'justify-end' : '' }}">
+                                    {{ $label }}
+                                    @if($sortColumn === $col)
+                                        <span class="material-symbols-outlined text-sm">{{ $sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                    @endif
+                                </div>
+                            </th>
+                        @endforeach
                         <th class="table-header font-label-lg text-label-lg text-center">Action</th>
                     </tr>
                 </thead>

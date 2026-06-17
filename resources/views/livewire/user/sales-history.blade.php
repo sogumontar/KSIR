@@ -105,10 +105,9 @@
         <div class="px-lg py-md border-b border-outline-variant flex justify-between items-center">
             <h4 class="font-headline-md text-headline-md text-primary">Transaction Logs</h4>
             <div class="flex items-center gap-md">
-                <span class="text-label-md text-on-surface-variant">Showing 1-10 of 1,842</span>
+                <span class="text-label-md text-on-surface-variant">Showing {{ $transactions->firstItem() ?? 0 }}-{{ $transactions->lastItem() ?? 0 }} of {{ number_format($transactions->total()) }}</span>
                 <div class="flex gap-xs">
-                    <button class="p-2 border border-outline-variant rounded hover:bg-surface-container-low"><span class="material-symbols-outlined">chevron_left</span></button>
-                    <button class="p-2 border border-outline-variant rounded hover:bg-surface-container-low"><span class="material-symbols-outlined">chevron_right</span></button>
+                    {{ $transactions->links() }}
                 </div>
             </div>
         </div>
@@ -116,12 +115,16 @@
             <table class="w-full text-left border-collapse min-w-[640px]">
                 <thead>
                 <tr class="bg-primary text-white">
-                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">Date</th>
-                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">Transaction ID</th>
-                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">Item</th>
-                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">User</th>
-                    <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10">Recipient</th>
-                    <th class="px-lg py-md font-label-lg uppercase tracking-wider text-right">Total Value</th>
+                    @foreach(['transaction_date' => 'Date', 'id' => 'Transaction ID', 'item_name' => 'Item', 'user_id' => 'User', 'recipient_name' => 'Recipient', 'total_price' => 'Total Value'] as $col => $label)
+                        <th class="px-lg py-md font-label-lg uppercase tracking-wider border-r border-white/10 cursor-pointer hover:bg-primary-container transition-colors" wire:click="sort('{{ $col }}')">
+                            <div class="flex items-center gap-1 {{ $label === 'Total Value' ? 'justify-end' : '' }}">
+                                {{ $label }}
+                                @if($sortColumn === $col)
+                                    <span class="material-symbols-outlined text-sm">{{ $sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @endif
+                            </div>
+                        </th>
+                    @endforeach
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant">
@@ -143,12 +146,6 @@
                 @endforelse
                 </tbody>
             </table>
-        </div>
-        <div class="p-lg bg-surface-container-lowest flex justify-center">
-            <button class="text-primary font-label-lg flex items-center gap-sm hover:underline">
-                Load More Transactions
-                <span class="material-symbols-outlined">expand_more</span>
-            </button>
         </div>
     </section>
 </div>

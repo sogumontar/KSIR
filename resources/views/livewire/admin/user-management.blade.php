@@ -21,6 +21,17 @@
                     <input wire:model.live="search" class="w-full pl-10 pr-4 h-12 bg-white border border-outline rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent" placeholder="Name or email..." type="text">
                 </div>
             </div>
+            
+            <div class="w-full lg:w-auto">
+                <label class="block font-label-md text-on-surface mb-2">Date Range</label>
+                <div class="flex items-center gap-2 bg-white border border-outline rounded-lg px-3 h-12">
+                    <span class="material-symbols-outlined text-slate-400 text-sm">calendar_today</span>
+                    <input wire:model.live="dateFrom" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                    <span class="text-slate-400 text-sm">to</span>
+                    <input wire:model.live="dateTo" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                </div>
+            </div>
+
             <div class="w-full lg:w-48">
                 <label class="block font-label-md text-on-surface mb-2">Role</label>
                 <select wire:model.live="roleFilter" class="w-full h-12 bg-white border border-outline rounded-lg px-4 focus:ring-2 focus:ring-secondary">
@@ -37,7 +48,7 @@
                     <option value="inactive">Inactive</option>
                 </select>
             </div>
-            <button wire:click="resetFilters" class="h-12 px-md border border-outline text-on-surface-variant font-label-lg rounded-lg hover:bg-surface-container-low transition-colors">
+            <button wire:click="resetTableFilters" class="h-12 px-md border border-outline text-on-surface-variant font-label-lg rounded-lg hover:bg-surface-container-low transition-colors">
                 Reset
             </button>
         </div>
@@ -49,10 +60,16 @@
             <table class="w-full border-collapse min-w-[640px]">
                 <thead class="bg-primary text-white">
                 <tr>
-                    <th class="text-left py-4 px-6 font-label-lg">User</th>
-                    <th class="text-left py-4 px-6 font-label-lg">Role</th>
-                    <th class="text-left py-4 px-6 font-label-lg">Status</th>
-                    <th class="text-left py-4 px-6 font-label-lg">Created</th>
+                    @foreach(['name' => 'User', 'is_admin' => 'Role', 'status' => 'Status', 'created_at' => 'Created'] as $col => $label)
+                        <th class="text-left py-4 px-6 font-label-lg cursor-pointer hover:bg-primary-container transition-colors" wire:click="sort('{{ $col }}')">
+                            <div class="flex items-center gap-1">
+                                {{ $label }}
+                                @if($sortColumn === $col)
+                                    <span class="material-symbols-outlined text-sm">{{ $sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @endif
+                            </div>
+                        </th>
+                    @endforeach
                     <th class="text-right py-4 px-6 font-label-lg">Actions</th>
                 </tr>
                 </thead>

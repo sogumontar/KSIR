@@ -8,16 +8,23 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use App\Models\User;
+use App\Livewire\Concerns\WithTableFiltering;
 
 #[Layout('components.layouts.admin')]
 #[Title('User Management - Inventory Pro')]
 class UserManagement extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads, WithTableFiltering;
 
     public string $search = '';
     public string $roleFilter = '';
     public string $statusFilter = '';
+
+    public function mount()
+    {
+        $this->sortColumn = 'name';
+        $this->sortDirection = 'asc';
+    }
 
     // Edit sidebar state
     public bool $showEditSidebar = false;
@@ -195,13 +202,15 @@ class UserManagement extends Component
 
     public function render()
     {
-        $users = User::query()
+        $query = User::query()
             ->when($this->search, fn($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhere('email', 'like', '%'.$this->search.'%'))
             ->when($this->roleFilter === 'admin', fn($q) => $q->where('is_admin', true))
             ->when($this->roleFilter === 'staff', fn($q) => $q->where('is_admin', false))
-            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
-            ->latest()
-            ->paginate(10);
+            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter));
+
+        $query = $this->applyTableFilters($query, 'created_at');
+
+        $users = $query->paginate(10);
 
         return view('livewire.admin.user-management', [
             'users' => $users,

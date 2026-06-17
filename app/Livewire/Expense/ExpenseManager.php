@@ -12,11 +12,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+use App\Livewire\Concerns\WithTableFiltering;
+
 #[Layout('components.layouts.user')]
 #[Title('Personal Expenses - Inventory Pro')]
 class ExpenseManager extends Component
 {
-    use WithPagination;
+    use WithPagination, WithTableFiltering;
+
+    public function mount()
+    {
+        $this->sortColumn = 'date';
+        $this->sortDirection = 'desc';
+        $this->categoryNames = ExpenseCategory::pluck('name')->toArray();
+    }
 
     public $search = '';
     public $dateFilter = 'monthly'; // daily, weekly, monthly, yearly
@@ -136,11 +145,6 @@ class ExpenseManager extends Component
         );
     }
 
-    public function mount()
-    {
-        $this->categoryNames = ExpenseCategory::pluck('name')->toArray();
-    }
-
     public function render()
     {
         $expenses = $this->expensesQuery()->paginate(10);
@@ -156,8 +160,10 @@ class ExpenseManager extends Component
     {
         $query = Expense::with('category')
             ->where('user_id', Auth::id())
-            ->when($this->search, fn($q) => $q->where('description', 'like', "%{$this->search}%"))
-            ->orderBy('date', 'desc');
+            ->when($this->search, fn($q) => $q->where('description', 'like', "%{$this->search}%"));
+            
+        $query = $this->applyTableFilters($query, 'date');
+        
         return $query;
     }
 

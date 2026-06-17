@@ -18,23 +18,41 @@
     get editProfit() { return ((this.editSellPrice || 0) - (this.editPrice || 0)) * (this.editQty || 0); }
 }">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-md mb-8">
-        <h2 class="font-headline-lg text-headline-lg text-slate-900 m-0">Sales Record</h2>
-        <div class="flex items-center gap-md flex-col sm:flex-row flex-wrap">
-            <!-- Status Filter -->
-            <select wire:model.live="statusFilter" class="form-input bg-white appearance-none text-sm py-2.5 px-4 rounded-lg border border-slate-300 w-full sm:w-auto min-h-[42px]">
-                <option value="">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="transit">In Transit</option>
-                <option value="delivered">Delivered</option>
-                <option value="loan">On Loan</option>
-                <option value="in_progress">In Progress</option>
-                <option value="failed">Failed</option>
-            </select>
-            <button wire:click="openAdd" class="btn-primary gap-2 w-full sm:w-auto justify-center">
-                <span class="material-symbols-outlined">add</span>
-                Add New Record
-            </button>
+    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-md mb-8">
+        <div>
+            <h2 class="font-headline-lg text-headline-lg text-slate-900 m-0">Sales Record</h2>
+        </div>
+        
+        <div class="flex flex-col md:flex-row items-end gap-md">
+            <!-- Date Range Filter -->
+            <div class="flex flex-col sm:flex-row items-center gap-2">
+                <div class="flex items-center gap-2 bg-white border border-slate-300 rounded-lg px-3 py-1.5 h-[42px]">
+                    <span class="material-symbols-outlined text-slate-400 text-sm">calendar_today</span>
+                    <input wire:model.live="dateFrom" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                    <span class="text-slate-400 text-sm">to</span>
+                    <input wire:model.live="dateTo" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                </div>
+                <button wire:click="resetTableFilters" class="btn-ghost px-3 h-[42px] border border-slate-300 bg-white" title="Reset Filters">
+                    <span class="material-symbols-outlined">restart_alt</span>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-md flex-col sm:flex-row flex-wrap w-full md:w-auto">
+                <!-- Status Filter -->
+                <select wire:model.live="statusFilter" class="form-input bg-white appearance-none text-sm py-2.5 px-4 rounded-lg border border-slate-300 w-full sm:w-auto min-h-[42px]">
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="transit">In Transit</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="loan">On Loan</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="failed">Failed</option>
+                </select>
+                <button wire:click="openAdd" class="btn-primary gap-2 w-full sm:w-auto justify-center">
+                    <span class="material-symbols-outlined">add</span>
+                    Add New Record
+                </button>
+            </div>
         </div>
     </div>
 
@@ -67,16 +85,16 @@
                     <th class="table-header font-label-lg text-label-lg w-12">
                         <input type="checkbox" @change="$el.checked ? $wire.selectAll() : $wire.clearSelection()" class="form-checkbox rounded" />
                     </th>
-                    <th class="table-header font-label-lg text-label-lg">Date</th>
-                    <th class="table-header font-label-lg text-label-lg">Good/Item</th>
-                    <th class="table-header font-label-lg text-label-lg">Recipient</th>
-                    <th class="table-header font-label-lg text-label-lg">Sales Type</th>
-                    <th class="table-header font-label-lg text-label-lg text-right">Quantity</th>
-                    <th class="table-header font-label-lg text-label-lg text-right">Cost Price</th>
-                    <th class="table-header font-label-lg text-label-lg text-right">Sell Price</th>
-                    <th class="table-header font-label-lg text-label-lg text-right">Total Value</th>
-                    <th class="table-header font-label-lg text-label-lg text-right">Profit</th>
-                    <th class="table-header font-label-lg text-label-lg text-center">Status</th>
+                    @foreach(['transaction_date' => 'Date', 'item_name' => 'Good/Item', 'recipient_name' => 'Recipient', 'sales_type' => 'Sales Type', 'quantity' => 'Quantity', 'price' => 'Cost Price', 'sell_price' => 'Sell Price', 'total_price' => 'Total Value', 'profit' => 'Profit', 'status' => 'Status'] as $col => $label)
+                        <th class="table-header font-label-lg text-label-lg cursor-pointer hover:bg-slate-200 transition-colors" wire:click="sort('{{ $col }}')">
+                            <div class="flex items-center gap-1 {{ in_array($label, ['Quantity', 'Cost Price', 'Sell Price', 'Total Value', 'Profit']) ? 'justify-end' : '' }} {{ in_array($label, ['Status', 'Action']) ? 'justify-center' : '' }}">
+                                {{ $label }}
+                                @if($sortColumn === $col)
+                                    <span class="material-symbols-outlined text-sm">{{ $sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @endif
+                            </div>
+                        </th>
+                    @endforeach
                     <th class="table-header font-label-lg text-label-lg text-center">Action</th>
                 </tr>
                 </thead>
