@@ -10,12 +10,13 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use App\Models\Transaction;
 use App\Models\Good;
+use App\Livewire\Concerns\WithTableFiltering;
 
 #[Layout('components.layouts.user')]
 #[Title('Sales Record - Inventory Pro')]
 class Goods extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads, WithTableFiltering;
 
     public bool $showAddModal = false;
     public bool $showEditModal = false;
@@ -231,14 +232,9 @@ class Goods extends Component
             'editSalesType' => 'required|in:offline,online',
             'editSalesCode' => 'required_if:editSalesType,online|nullable|string|max:255',
             'editTransactionDate' => 'required|date',
-            'editProofFile' => $requiresProof && !$this->existingProof
-                ? 'required|file|mimes:pdf,jpg,jpeg,png|max:10240'
-                : 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'editProofFile' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
 
-        if ($requiresProof && !$this->existingProof && !$this->editProofFile) {
-            $this->addError('editProofFile', 'Proof of delivery is required when status is delivered or loan.');
-        }
 
         $this->validate($rules);
 
@@ -285,6 +281,7 @@ class Goods extends Component
                 'total_price' => $this->editQty * $this->editSellPrice,
                 'profit' => ($this->editSellPrice - $this->editPrice) * $this->editQty,
                 'status' => $this->editStatus,
+                'recipient_name' => $this->editRecipientId,
                 'sales_type' => $this->editSalesType,
                 'sales_code' => $this->editSalesType === 'online' ? $this->editSalesCode : null,
                 'transaction_date' => $this->editTransactionDate,
@@ -361,7 +358,10 @@ class Goods extends Component
             }
         }
 
-        $transactions = $query->latest()->paginate(10);
+        // Apply filtering and sorting via trait
+        $query = $this->applyTableFilters($query, 'transaction_date');
+
+        $transactions = $query->paginate(10);
         $goodsList = Good::where('user_id', auth()->id())->latest()->get();
 
         $loanSummary = Transaction::where('user_id', auth()->id())

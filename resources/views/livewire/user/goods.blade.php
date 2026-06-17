@@ -458,7 +458,7 @@
                     <!-- Recipient (display only) -->
                     <div>
                         <label class="form-label">Recipient / Destination</label>
-                        <input type="text" wire:model="editRecipientId" class="form-input bg-slate-50 text-slate-500 w-full" disabled>
+                        <input type="text" wire:model="editRecipientId" class="form-input w-full">
                     </div>
                     <!-- Status -->
                     <div>
@@ -525,10 +525,10 @@
                         <span class="material-symbols-outlined text-4xl text-slate-400 mb-2">upload_file</span>
                         <p class="font-label-md text-slate-700 mb-1">Click to upload or drag and drop</p>
                         <p class="text-sm text-slate-500">PDF, JPG, or PNG (max. 10MB)</p>
-                        <p x-show="$wire.editStatus === 'delivered' || $wire.editStatus === 'loan'" class="text-xs text-red-500 mt-1">Required for delivered and loan status</p>
+                        <!--<p x-show="$wire.editStatus === 'delivered' || $wire.editStatus === 'loan'" class="text-xs text-red-500 mt-1">Required for delivered and loan status</p>-->
                         <input accept=".pdf,.jpg,.jpeg,.png" class="hidden" type="file" wire:model="editProofFile">
                     </div>
-                    @error('editProofFile') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
+                    <!--@error('editProofFile') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror
                 </div>
             </div>
             <!-- Modal Footer -->
