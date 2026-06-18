@@ -5,50 +5,45 @@ namespace App\Livewire\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-
 use Illuminate\Support\Facades\Auth;
 
 #[Layout('components.layouts.guest')]
-#[Title('Login | Inventory Pro')]
+#[Title('Login - Inventory Pro')]
 class Login extends Component
 {
     public string $email = '';
     public string $password = '';
     public bool $remember = false;
 
-    public function mount()
-    {
-        if (Auth::check()) {
-            if (Auth::user()->is_admin) {
-                return redirect()->to(route('admin.dashboard'));
-            }
-            return redirect()->to(route('user.dashboard'));
-        }
-    }
-
     public function authenticate()
     {
         $this->validate([
-            'email' => 'required',
+            'email' => 'required|string',
             'password' => 'required',
         ]);
 
-        if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember) ||
-            Auth::attempt(['name' => $this->email, 'password' => $this->password], $this->remember)) {
-            if (auth()->user()-> status != 'active') {
-                $this->addError('email', 'Your account is temporary inactive. Please contact your administrator.');
-            }else{
-                session()->regenerate();
+        $credentials = [
+            filter_var($this->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'name' => $this->email,
+            'password' => $this->password,
+        ];
 
-                if (auth()->user()->is_admin) {
-                    return redirect()->to(route('admin.dashboard'));
-                }
-                return redirect()->to(route('user.dashboard'));
+        if (Auth::attempt($credentials, $this->remember)) {
+            session()->regenerate();
 
+            $user = Auth::user();
+
+            if ($user->is_admin) {
+                return redirect()->intended(route('admin.dashboard'));
             }
+
+            if ($user->role === 'customer') {
+                return redirect()->intended(route('customer.dashboard'));
+            }
+
+            return redirect()->intended(route('user.dashboard'));
         }
 
-        $this->addError('email', 'These credentials do not match our records.');
+        $this->addError('email', trans('auth.failed'));
     }
 
     public function render()

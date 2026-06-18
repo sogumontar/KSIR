@@ -54,26 +54,26 @@
             <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
             <span class="font-label-lg text-label-lg">Sales Record</span>
         </a>
-        
+
         <!-- Goods Inventory -->
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.inventory') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.inventory') }}" wire:navigate @click="sidebarOpen = false">
             <span class="material-symbols-outlined" data-icon="layers">layers</span>
             <span class="font-label-lg text-label-lg">Goods Inventory</span>
         </a>
-        
+
         <!-- Sales Monitoring -->
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.sales') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.sales') }}" wire:navigate @click="sidebarOpen = false">
             <span class="material-symbols-outlined" data-icon="history">history</span>
             <span class="font-label-lg text-label-lg">Sales Monitoring</span>
         </a>
-        
+
         <!-- Expenses -->
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.expenses') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
             href="{{ route('user.expenses') }}" wire:navigate @click="sidebarOpen = false">
              <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
-             <span class="font-label-lg text-label-lg">Personal Expenses</span>
+             <span class="font-label-lg text-label-lg">Personal Expensesasd</span>
         </a>
         <!-- Split Groups -->
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.groups') || request()->routeIs('user.group-detail') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"

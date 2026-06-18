@@ -21,7 +21,7 @@
                     <input wire:model.live="search" class="w-full pl-10 pr-4 h-12 bg-white border border-outline rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent" placeholder="Name or email..." type="text">
                 </div>
             </div>
-            
+
             <div class="w-full lg:w-auto">
                 <label class="block font-label-md text-on-surface mb-2">Date Range</label>
                 <div class="flex items-center gap-2 bg-white border border-outline rounded-lg px-3 h-12">
@@ -291,12 +291,12 @@
                                 ></span>
                             </button>
                         </div>
-                        
+
                         <hr class="border-outline-variant my-xl">
                         <div class="space-y-base">
                             <label class="block font-label-md text-on-surface">Menu Permissions</label>
                             <div class="text-sm text-on-surface-variant mb-4">Toggle access to specific menus for this user. Only applies to staff users.</div>
-                            
+
                             <div class="grid grid-cols-1 gap-sm">
                                 <div x-data="{ enabled: @entangle('editMenuSalesRecord') }" class="flex items-center justify-between p-4 border border-outline rounded-lg">
                                     <div class="font-label-lg text-primary">Sales Record</div>

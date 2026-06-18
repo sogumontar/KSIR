@@ -7,6 +7,7 @@
     <title>{{ $title ?? 'Login | Inventory Pro' }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     @vite(['resources/css/app.css'])
+    @livewireStyles
 </head>
 <body class="min-h-screen flex flex-col justify-center items-center p-sm md:p-gutter">
     {{ $slot }}
@@ -16,5 +17,6 @@
         <div class="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-surface-container opacity-50 blur-3xl"></div>
         <div class="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-surface-container opacity-30 blur-3xl"></div>
     </div>
+    @livewireScripts
 </body>
 </html>

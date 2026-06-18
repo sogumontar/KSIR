@@ -16,10 +16,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Admin user
-        User::factory()->create([
+        User::factory()->admin()->create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
-            'is_admin' => true,
             'status' => 'active',
             'created_at' => now(),
         ]);
@@ -28,7 +27,6 @@ class DatabaseSeeder extends Seeder
         $testUser = User::factory()->create([
             'name' => 'Regular User',
             'email' => 'user@example.com',
-            'is_admin' => false,
             'status' => 'active',
             'created_at' => now()->subMonths(3),
         ]);
@@ -43,6 +41,7 @@ class DatabaseSeeder extends Seeder
         for ($i = 0; $i < 35; $i++) {
             $monthsBack = $i < 12 ? 3 : ($i < 24 ? 2 : 1);
             $users[] = User::factory()->create([
+                'role' => 'staff',
                 'created_at' => now()->subMonths($monthsBack)->addDays(rand(0, 28)),
             ]);
         }

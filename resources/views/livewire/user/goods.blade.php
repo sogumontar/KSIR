@@ -20,17 +20,17 @@
     <!-- Header -->
     <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-md mb-8">
         <div>
-            <h2 class="font-headline-lg text-headline-lg text-slate-900 m-0">Sales Record</h2>
+            <h2 class="font-headline-lg text-headline-lg text-slate-900 m-0">Sales Recaord</h2>
         </div>
-        
+
         <div class="flex flex-col md:flex-row items-end gap-md">
             <!-- Date Range Filter -->
             <div class="flex flex-col sm:flex-row items-center gap-2">
                 <div class="flex items-center gap-2 bg-white border border-slate-300 rounded-lg px-3 py-1.5 h-[42px]">
                     <span class="material-symbols-outlined text-slate-400 text-sm">calendar_today</span>
-                    <input wire:model.live="dateFrom" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                    <input wire:model.live="dateFrom" type="date" class="border border-outline-variant rounded-lg bg-surface-container-lowest p-2 text-body-md focus:ring-2 focus:ring-secondary w-full">
                     <span class="text-slate-400 text-sm">to</span>
-                    <input wire:model.live="dateTo" type="date" class="border-none p-0 text-sm focus:ring-0 w-32 bg-transparent">
+                    <input wire:model.live="dateTo" type="date" class="border border-outline-variant rounded-lg bg-surface-container-lowest p-2 text-body-md focus:ring-2 focus:ring-secondary w-full">
                 </div>
                 <button wire:click="resetTableFilters" class="btn-ghost px-3 h-[42px] border border-slate-300 bg-white" title="Reset Filters">
                     <span class="material-symbols-outlined">restart_alt</span>

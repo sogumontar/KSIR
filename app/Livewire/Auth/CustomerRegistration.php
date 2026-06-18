@@ -41,7 +41,13 @@ class CustomerRegistration extends Component
             'phone_number' => $this->phone,
             'password' => Hash::make($this->password),
             'is_admin' => false,
+            'role' => 'customer',
             'status' => 'active',
+            'menu_sales_record' => false,
+            'menu_goods_inventory' => false,
+            'menu_sales_monitoring' => false,
+            'menu_expenses' => false,
+            'menu_split_groups' => false,
         ]);
 
         if ($this->merchantToken) {

@@ -35,8 +35,31 @@ class UserFactory extends Factory
             'photo_path' => null,
             'status' => fake()->randomElement(['active', 'inactive']),
             'is_admin' => false,
+            'role' => 'staff',
             'created_at' => fake()->dateTimeBetween('-2 months', 'now'),
         ];
+    }
+
+    /**
+     * Indicate that the user is an admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+            'role' => 'admin',
+        ]);
+    }
+
+    /**
+     * Indicate that the user is a customer.
+     */
+    public function customer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => false,
+            'role' => 'customer',
+        ]);
     }
 
     /**
