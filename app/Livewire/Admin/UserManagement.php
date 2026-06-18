@@ -8,22 +8,21 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use App\Models\User;
-use App\Livewire\Concerns\WithTableFiltering;
 
 #[Layout('components.layouts.admin')]
 #[Title('User Management - Inventory Pro')]
 class UserManagement extends Component
 {
-    use WithPagination, WithFileUploads, WithTableFiltering;
+    use WithPagination, WithFileUploads;
 
     public string $search = '';
     public string $roleFilter = '';
     public string $statusFilter = '';
+    public string $sortColumn = 'name';
+    public string $sortDirection = 'asc';
 
     public function mount()
     {
-        $this->sortColumn = 'name';
-        $this->sortDirection = 'asc';
     }
 
     // Edit sidebar state
@@ -208,7 +207,7 @@ class UserManagement extends Component
             ->when($this->roleFilter === 'staff', fn($q) => $q->where('is_admin', false))
             ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter));
 
-        $query = $this->applyTableFilters($query, 'created_at');
+        $query = $query->orderBy($this->sortColumn, $this->sortDirection);
 
         $users = $query->paginate(10);
 

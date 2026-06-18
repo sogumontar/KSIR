@@ -12,6 +12,8 @@ use App\Livewire\User\Profile;
 use App\Livewire\Expense\ExpenseManager;
 
 Route::get('/', Login::class)->name('login');
+Route::get('/invite/{merchantToken}', \App\Livewire\Auth\CustomerRegistration::class)->name('customer.register.invite');
+Route::get('/register', \App\Livewire\Auth\CustomerRegistration::class)->name('customer.register');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
@@ -25,6 +27,8 @@ Route::middleware(['auth', 'user'])->prefix('user')->name('user.')->group(functi
     Route::get('/sales', SalesHistory::class)->name('sales');
     Route::get('/inventory', Inventory::class)->name('inventory');
     Route::get('/profile', Profile::class)->name('profile');
+    Route::get('/storefront', \App\Livewire\Merchant\StorefrontConfig::class)->name('storefront');
+    Route::get('/orders', \App\Livewire\Merchant\OrderManagement::class)->name('orders');
     Route::get('/expenses', ExpenseManager::class)->name('expenses');
     Route::get('/groups', \App\Livewire\User\Groups\GroupList::class)->name('groups');
     Route::get('/groups/join/{token}', [\App\Http\Controllers\GroupInviteController::class, 'join'])->name('groups.join');
@@ -49,3 +53,9 @@ Route::post('/logout', function () {
     session()->regenerateToken();
     return redirect()->route('login');
 })->name('logout');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/customer/dashboard', \App\Livewire\Customer\Dashboard::class)->name('customer.dashboard');
+    Route::get('/store/{merchantToken}', \App\Livewire\Customer\Storefront::class)->name('customer.storefront');
+    Route::get('/checkout', \App\Livewire\Customer\Checkout::class)->name('customer.checkout');
+});

@@ -81,6 +81,18 @@
              <span class="material-symbols-outlined" data-icon="groups">groups</span>
              <span class="font-label-lg text-label-lg">Split Groups</span>
         </a>
+        <!-- Storefront -->
+        <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.storefront') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
+           href="{{ route('user.storefront') }}" wire:navigate @click="sidebarOpen = false">
+            <span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+            <span class="font-label-lg text-label-lg">Storefront Config</span>
+        </a>
+        <!-- Orders -->
+        <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.orders') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
+           href="{{ route('user.orders') }}" wire:navigate @click="sidebarOpen = false">
+            <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+            <span class="font-label-lg text-label-lg">Customer Orders</span>
+        </a>
         <!-- Profile -->
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.profile') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.profile') }}" wire:navigate @click="sidebarOpen = false">

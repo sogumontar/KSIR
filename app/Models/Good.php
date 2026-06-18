@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'name', 'price', 'stock', 'unit_type', 'description', 'image'])]
+#[Fillable(['user_id', 'name', 'price', 'stock', 'stock_hold', 'is_visible', 'unit_type', 'description', 'image'])]
 class Good extends Model
 {
     use HasFactory, SoftDeletes;
@@ -19,6 +19,8 @@ class Good extends Model
         return [
             'price' => 'decimal:2',
             'stock' => 'integer',
+            'stock_hold' => 'integer',
+            'is_visible' => 'boolean',
         ];
     }
 

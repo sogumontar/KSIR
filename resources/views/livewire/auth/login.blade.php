@@ -80,7 +80,7 @@
     <footer class="mt-xl text-center">
         <p class="font-body-md text-body-md text-on-surface-variant">
             Don't have an account?
-            <a class="text-secondary font-bold hover:underline underline-offset-4" href="#">Contact your administrator</a>
+            <a class="text-secondary font-bold hover:underline underline-offset-4" href="{{ route('customer.register') }}">Register here</a> or contact your administrator.
         </p>
         <div class="mt-lg flex justify-center gap-md opacity-60">
             <a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface" href="#">Privacy Policy</a>
