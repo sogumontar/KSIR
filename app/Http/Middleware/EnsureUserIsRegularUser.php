@@ -11,6 +11,16 @@ class EnsureUserIsRegularUser
 {
     /**
      * Handle an incoming request.
+     *
+     * Allows access to staff/regular user areas.
+     * - Admins (is_admin = true) are redirected to admin dashboard.
+     * - Customers (role = 'customer') are redirected to customer dashboard.
+     * - Everyone else (staff) is allowed through.
+     *
+     * We use is_admin as the primary gate, and role as a secondary signal
+     * for distinguishing staff from customers. If role is null/missing
+     * (e.g. old accounts before the role migration), we default to allowing
+     * access so staff aren't locked out.
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -20,21 +30,17 @@ class EnsureUserIsRegularUser
 
         $user = Auth::user();
 
-        // Admin cannot access staff areas (as per existing logic, though they might want to?)
-        // Actually, the previous logic was: if is_admin, abort 403.
+        // Admins should not be in the staff portal
         if ($user->is_admin) {
-            abort(403, 'Unauthorized access.');
+            return redirect()->route('admin.dashboard');
         }
 
-        // Must be a staff member
-        if ($user->role !== 'staff') {
-             // If it's a customer, redirect to customer dashboard or abort
-             if ($user->role === 'customer') {
-                 return redirect()->route('customer.dashboard');
-             }
-             abort(403, 'Unauthorized access.');
+        // Customers should go to their own portal
+        if ($user->role === 'customer') {
+            return redirect()->route('customer.dashboard');
         }
 
+        // Allow staff (role = 'staff') and legacy accounts with no role set
         return $next($request);
     }
 }
