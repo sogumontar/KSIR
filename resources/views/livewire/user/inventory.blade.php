@@ -69,7 +69,7 @@
                         <tr class="table-row-zebra border-b border-slate-200">
                             <td class="table-cell">
                                 @if($good->image)
-                                    <img src="{{ asset('storage/' . $good->image) }}" alt="{{ $good->name }}" class="w-10 h-10 rounded object-cover border border-slate-200">
+                                    <img src="{{ Storage::disk('public')->url($good->image) }}" alt="{{ $good->name }}" class="w-10 h-10 rounded object-cover border border-slate-200">
                                 @else
                                     <div class="w-10 h-10 rounded bg-slate-100 border border-slate-200 flex items-center justify-center">
                                         <span class="material-symbols-outlined text-slate-400 text-lg">image</span>
@@ -313,7 +313,7 @@
                     <label class="form-label">Product Image</label>
                     @if($existingImage)
                         <div class="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg mb-3">
-                            <img src="{{ asset('storage/' . $existingImage) }}" alt="Current image" class="w-16 h-16 rounded object-cover border border-blue-300">
+                            <img src="{{ Storage::disk('public')->url($existingImage) }}" alt="Current image" class="w-16 h-16 rounded object-cover border border-blue-300">
                             <div class="flex-1">
                                 <span class="text-sm text-blue-800 font-medium">Current image</span>
                             </div>
@@ -370,7 +370,7 @@
             <div class="p-8 space-y-4">
                 @if(data_get($viewRecord, 'image'))
                     <div class="flex justify-center mb-4">
-                        <img src="{{ asset('storage/' . data_get($viewRecord, 'image')) }}" alt="{{ data_get($viewRecord, 'name') }}" class="w-32 h-32 rounded-lg object-cover border border-slate-200 shadow-sm">
+                        <img src="{{ Storage::disk('public')->url(data_get($viewRecord, 'image')) }}" alt="{{ data_get($viewRecord, 'name') }}" class="w-32 h-32 rounded-lg object-cover border border-slate-200 shadow-sm">
                     </div>
                 @endif
                 <div class="grid grid-cols-2 gap-4 text-body-md">

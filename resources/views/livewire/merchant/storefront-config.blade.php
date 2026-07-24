@@ -22,7 +22,7 @@
                 <!-- Cover Image Area -->
                 <input type="file" wire:model="banner_photo" class="hidden" id="banner_input" accept="image/*">
                 <label for="banner_input" class="h-48 md:h-64 w-full bg-surface-container-high relative group cursor-pointer block"
-                    style="background-image: url('{{ $banner_photo ? $banner_photo->temporaryUrl() : (auth()->user()->banner_photo ? asset('storage/' . auth()->user()->banner_photo) : 'https://lh3.googleusercontent.com/aida-public/AB6AXuCmeXQj0HYzz-a8WJinV5aEnUhMWwXQqcvaL5vmcSTp3eznp9cBlsQ5equxTtzL2ZdrWfzXFbB-S-9Nd5HBMpuuaY_X8exQRaa2CVGp00f8elKiLnmGsDkebSo_yP29-V1vZqhUioeoMoLgdbtqtKzYf1nW3ncMfC0pEeLxdnv8mgmurWGGbgLvxXvdTTXE4iPBqDoNWSSK874XtFvN0NprhEtk9g3ThZFMfRUqv5Cpk9CL658WNYouLVqFG3S8E2C-cAJaPcTG1WM') }}'); background-size: cover; background-position: center;">
+                    style="background-image: url('{{ $banner_photo ? $banner_photo->temporaryUrl() : (auth()->user()->banner_photo ? Storage::disk('public')->url(auth()->user()->banner_photo) : 'https://lh3.googleusercontent.com/aida-public/AB6AXuCmeXQj0HYzz-a8WJinV5aEnUhMWwXQqcvaL5vmcSTp3eznp9cBlsQ5equxTtzL2ZdrWfzXFbB-S-9Nd5HBMpuuaY_X8exQRaa2CVGp00f8elKiLnmGsDkebSo_yP29-V1vZqhUioeoMoLgdbtqtKzYf1nW3ncMfC0pEeLxdnv8mgmurWGGbgLvxXvdTTXE4iPBqDoNWSSK874XtFvN0NprhEtk9g3ThZFMfRUqv5Cpk9CL658WNYouLVqFG3S8E2C-cAJaPcTG1WM') }}'); background-size: cover; background-position: center;">
                     <div class="absolute inset-0 bg-primary/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <span class="flex items-center gap-xs text-on-primary font-body-md text-body-md font-medium px-md py-sm bg-primary/80 rounded-lg backdrop-blur-sm">
                             <span class="material-symbols-outlined">photo_camera</span> Change Cover Image
@@ -41,7 +41,7 @@
                                 @if($profile_photo)
                                     <img class="w-full h-full object-cover" src="{{ $profile_photo->temporaryUrl() }}">
                                 @elseif(auth()->user()->profile_photo)
-                                    <img class="w-full h-full object-cover" src="{{ asset('storage/' . auth()->user()->profile_photo) }}">
+                                    <img class="w-full h-full object-cover" src="{{ Storage::disk('public')->url(auth()->user()->profile_photo) }}">
                                 @else
                                     <span class="text-4xl text-outline">{{ strtoupper(substr($store_name ?: auth()->user()->name, 0, 1)) }}</span>
                                 @endif
@@ -64,10 +64,55 @@
         @error('profile_photo') <p class="text-error text-body-sm mt-xs">{{ $message }}</p> @enderror
         @error('banner_photo') <p class="text-error text-body-sm mt-xs">{{ $message }}</p> @enderror
 
+        <!-- Section: Storefront Sharing -->
+        <section class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden card-shadow">
+            <div class="p-lg border-b border-outline-variant bg-surface-container-lowest flex flex-col md:flex-row justify-between items-start md:items-center gap-md">
+                <div class="flex-1">
+                    <h3 class="font-headline-md text-headline-md text-primary flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-secondary" data-icon="share">share</span>
+                        Storefront Sharing
+                    </h3>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Provide this exclusive invitation link to customers so they can join your store and place orders.</p>
+                </div>
+            </div>
+            <div class="p-lg bg-surface-container-low/30">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-md bg-white p-md rounded-xl border border-outline-variant shadow-sm" 
+                     x-data="{ 
+                        link: '{{ route('customer.register.invite', ['merchantToken' => auth()->user()->unique_code ?? '']) }}',
+                        copied: false,
+                        copy() {
+                            if(!this.link) return;
+                            navigator.clipboard.writeText(this.link);
+                            this.copied = true;
+                            setTimeout(() => this.copied = false, 2000);
+                        }
+                     }">
+                    <div class="flex-1 flex flex-col min-w-0">
+                        <label class="font-label-caps text-[10px] text-on-surface-variant mb-xs">CUSTOMER INVITATION LINK</label>
+                        <div class="flex items-center gap-sm">
+                            <span class="material-symbols-outlined text-outline text-[18px]">link</span>
+                            <span class="font-mono text-sm text-primary font-semibold truncate select-all" x-text="link || 'Generating...'"></span>
+                        </div>
+                    </div>
+                    <button type="button" 
+                            @click="copy()" 
+                            class="flex items-center justify-center gap-xs px-lg py-sm rounded-lg font-label-lg transition-all duration-200 min-w-[140px]"
+                            :class="copied ? 'bg-secondary text-white' : 'bg-primary text-white hover:bg-on-primary-fixed'">
+                        <span class="material-symbols-outlined text-[20px]" x-text="copied ? 'check_circle' : 'content_copy'">content_copy</span>
+                        <span x-text="copied ? 'Copied!' : 'Copy Link'">Copy Link</span>
+                    </button>
+                </div>
+                <div class="mt-md flex items-start gap-sm">
+                    <span class="material-symbols-outlined text-secondary text-[18px]">info</span>
+                    <p class="font-body-sm text-xs text-on-surface-variant italic">When customers use this link, they will be prompted to register and your store will be permanently added to their dashboard.</p>
+                </div>
+            </div>
+        </section>
+
         <!-- Grid for Store Info and Business Details -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
             <!-- Section: Store Information -->
-            <section class="lg:col-span-7 bg-surface-container-lowest rounded-xl border border-outline-variant p-lg card-shadow space-y-md">
+            <section class="lg:col-span-7 bg-surface-container-lowest rounded-xl border border-outline-variant p-lg card-shadow space-y-md h-full">
                 <div>
                     <h3 class="font-headline-md text-headline-md text-on-surface">Store Information</h3>
                     <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Primary contact and descriptive details.</p>
@@ -83,7 +128,7 @@
                         <textarea wire:model="store_description" class="form-input w-full rounded-lg px-md py-sm font-body-md text-body-md text-on-surface resize-none" placeholder="Briefly describe what your store offers..." rows="4"></textarea>
                         <div class="flex justify-between items-center mt-xs">
                             @error('store_description') <p class="text-error text-body-sm">{{ $message }}</p> @enderror
-                            <p class="font-body-sm text-body-sm text-on-surface-variant opacity-70 ml-auto">{{ strlen($store_description) }} / 500</p>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant opacity-70 ml-auto">{{ strlen($store_description ?? '') }} / 500</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
@@ -111,7 +156,7 @@
                 </div>
             </section>
             <!-- Section: Business Details -->
-            <section class="lg:col-span-5 bg-surface-container-lowest rounded-xl border border-outline-variant p-lg card-shadow space-y-md flex flex-col">
+            <section class="lg:col-span-5 bg-surface-container-lowest rounded-xl border border-outline-variant p-lg card-shadow space-y-md flex flex-col h-full">
                 <div>
                     <h3 class="font-headline-md text-headline-md text-on-surface">Business Details</h3>
                     <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Categorization and operational parameters.</p>

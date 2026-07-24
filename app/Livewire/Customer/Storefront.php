@@ -5,11 +5,12 @@ namespace App\Livewire\Customer;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Computed;
 use App\Models\User;
 use App\Models\Good;
 use Illuminate\Support\Facades\Auth;
 
-#[Layout('components.layouts.guest')]
+#[Layout('components.layouts.customer')]
 #[Title('Merchant Storefront - Inventory Pro')]
 class Storefront extends Component
 {
@@ -42,6 +43,13 @@ class Storefront extends Component
         
         session()->put('cart', $cart);
         session()->flash('message', 'Item added to cart.');
+    }
+
+    #[Computed]
+    public function cartCount()
+    {
+        $cart = session()->get('cart', []);
+        return array_sum(array_column($cart, 'quantity'));
     }
 
     public function render()

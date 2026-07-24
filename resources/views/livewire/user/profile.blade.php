@@ -67,7 +67,7 @@
                     </div>
                 @elseif($existingPhoto)
                     <div class="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg mb-3">
-                        <img src="{{ asset('storage/' . $existingPhoto) }}" alt="Current photo" class="w-16 h-16 rounded object-cover border border-blue-300">
+                        <img src="{{ Storage::disk('public')->url($existingPhoto) }}" alt="Current photo" class="w-16 h-16 rounded object-cover border border-blue-300">
                         <div class="flex-1">
                             <span class="text-sm text-blue-800 font-medium">Current photo</span>
                         </div>

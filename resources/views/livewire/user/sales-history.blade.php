@@ -1,4 +1,88 @@
-<div x-data="{ exportOpen: false, period: 'Monthly' }">
+<div x-data="{
+    exportOpen: false,
+    activeTrend: 'revenue',
+    initChart() {
+        const existingChart = Chart.getChart('salesPerformanceChart');
+        if (existingChart) {
+            existingChart.destroy();
+        }
+
+        const canvas = document.getElementById('salesPerformanceChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const isRevenue = this.activeTrend === 'revenue';
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, isRevenue ? 'rgba(16, 185, 129, 0.4)' : 'rgba(59, 130, 246, 0.4)');
+        gradient.addColorStop(1, isRevenue ? 'rgba(16, 185, 129, 0)' : 'rgba(59, 130, 246, 0)');
+
+        const chartLabels = @json($chartLabels);
+        const chartValues = isRevenue ? @json($chartValues) : @json($unitChartValues);
+        const color = isRevenue ? '#10B981' : '#3B82F6';
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: isRevenue ? 'Revenue (Rp)' : 'Selling Trend (Units)',
+                    data: chartValues,
+                    borderColor: color,
+                    borderWidth: 4,
+                    fill: true,
+                    backgroundColor: gradient,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#FFFFFF',
+                    pointBorderColor: color,
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#091426',
+                        titleFont: { family: 'Public Sans', size: 14 },
+                        bodyFont: { family: 'Public Sans', size: 16, weight: 'bold' },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return isRevenue 
+                                    ? 'Rp ' + context.parsed.y.toLocaleString('id-ID')
+                                    : context.parsed.y.toLocaleString('id-ID') + ' units';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#E2E8F0', borderDash: [5, 5] },
+                        ticks: {
+                            color: '#64748B',
+                            font: { family: 'Public Sans', size: 12 },
+                            callback: function(value) {
+                                return isRevenue 
+                                    ? 'Rp ' + value.toLocaleString('id-ID')
+                                    : value.toLocaleString('id-ID') + ' pcs';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#64748B', font: { family: 'Public Sans', size: 12 } }
+                    }
+                }
+            }
+        });
+    }
+}" x-init="$nextTick(() => initChart()); Livewire.hook('morph.updated', () => $nextTick(() => initChart()))">
     <!-- Header Section -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-md mb-xl">
         <div>
@@ -53,23 +137,32 @@
         </button>
     </section>
     <!-- KPI Row -->
-    <div class="grid @container grid-cols-1 md:grid-cols-3 @sm:grid-cols-2 @md:grid-cols-3 gap-lg mb-lg">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
         <div class="bg-white border border-outline-variant rounded-xl p-lg shadow-sm overflow-hidden relative">
             <div class="flex justify-between items-start mb-sm">
                 <div>
                     <p class="text-on-surface-variant font-label-md uppercase tracking-wider">Total Revenue</p>
-                    <h3 class="font-display text-display text-primary mt-xs">Rp{{ number_format($realTotalRevenue, 0) }}</h3>
+                    <h3 class="font-display text-headline-lg text-primary mt-xs">Rp{{ number_format($realTotalRevenue, 0) }}</h3>
                 </div>
                 <span class="material-symbols-outlined text-secondary text-4xl">payments</span>
             </div>
-            <!-- Sparkline placeholder -->
             <div class="absolute bottom-0 left-0 w-full h-1 bg-secondary opacity-20"></div>
         </div>
         <div class="bg-white border border-outline-variant rounded-xl p-lg shadow-sm overflow-hidden relative">
             <div class="flex justify-between items-start mb-sm">
                 <div>
+                    <p class="text-on-surface-variant font-label-md uppercase tracking-wider">Selling Units</p>
+                    <h3 class="font-display text-headline-lg text-blue-600 mt-xs">{{ number_format($realTotalUnits) }} Pcs</h3>
+                </div>
+                <span class="material-symbols-outlined text-blue-500 text-4xl">shopping_cart</span>
+            </div>
+            <div class="absolute bottom-0 left-0 w-full h-1 bg-blue-500 opacity-20"></div>
+        </div>
+        <div class="bg-white border border-outline-variant rounded-xl p-lg shadow-sm overflow-hidden relative">
+            <div class="flex justify-between items-start mb-sm">
+                <div>
                     <p class="text-on-surface-variant font-label-md uppercase tracking-wider">Total Transactions</p>
-                    <h3 class="font-display text-display text-primary mt-xs">{{ number_format($realTotalTransactions) }}</h3>
+                    <h3 class="font-display text-headline-lg text-primary mt-xs">{{ number_format($realTotalTransactions) }}</h3>
                 </div>
                 <span class="material-symbols-outlined text-secondary text-4xl">receipt_long</span>
             </div>
@@ -79,7 +172,7 @@
             <div class="flex justify-between items-start mb-sm">
                 <div>
                     <p class="text-on-surface-variant font-label-md uppercase tracking-wider">Avg Order Value</p>
-                    <h3 class="font-display text-display text-primary mt-xs">Rp{{ number_format($realAvgOrderValue, 0) }}</h3>
+                    <h3 class="font-display text-headline-lg text-primary mt-xs">Rp{{ number_format($realAvgOrderValue, 0) }}</h3>
                 </div>
                 <span class="material-symbols-outlined text-secondary text-4xl">analytics</span>
             </div>
@@ -89,14 +182,28 @@
     <!-- Middle Section: Performance Chart -->
     <section class="bg-white border border-outline-variant rounded-xl p-lg mb-lg shadow-sm">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-md mb-lg">
-            <h4 class="font-headline-md text-headline-md text-primary">Sales Performance Over Time</h4>
+            <div class="flex flex-wrap items-center gap-md">
+                <h4 class="font-headline-md text-headline-md text-primary">Performance Trend</h4>
+                <!-- Trend Metric Selector -->
+                <div class="flex gap-xs bg-surface-container-low p-1 rounded-lg">
+                    <button :class="activeTrend === 'revenue' ? 'bg-white shadow-sm font-bold text-emerald-700' : 'text-on-surface-variant'" @click="activeTrend = 'revenue'; $nextTick(() => initChart())" class="px-md py-1 rounded font-label-md transition-all flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">payments</span> Revenue Trend
+                    </button>
+                    <button :class="activeTrend === 'selling' ? 'bg-white shadow-sm font-bold text-blue-700' : 'text-on-surface-variant'" @click="activeTrend = 'selling'; $nextTick(() => initChart())" class="px-md py-1 rounded font-label-md transition-all flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">shopping_cart</span> Selling Trend (Units)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timeframe Selector -->
             <div class="flex gap-xs bg-surface-container-low p-1 rounded-lg">
-                <button :class="period === 'Daily' ? 'bg-white shadow-sm' : ''" @click="period = 'Daily'" class="px-md py-1 rounded font-label-md transition-all">Daily</button>
-                <button :class="period === 'Weekly' ? 'bg-white shadow-sm' : ''" @click="period = 'Weekly'" class="px-md py-1 rounded font-label-md transition-all">Weekly</button>
-                <button :class="period === 'Monthly' ? 'bg-white shadow-sm' : ''" @click="period = 'Monthly'" class="px-md py-1 rounded font-label-md transition-all">Monthly</button>
+                <button wire:click="$set('period', 'Daily')" class="px-md py-1 rounded font-label-md transition-all {{ $period === 'Daily' ? 'bg-white shadow-sm font-bold text-primary' : 'text-on-surface-variant' }}">Daily</button>
+                <button wire:click="$set('period', 'Weekly')" class="px-md py-1 rounded font-label-md transition-all {{ $period === 'Weekly' ? 'bg-white shadow-sm font-bold text-primary' : 'text-on-surface-variant' }}">Weekly</button>
+                <button wire:click="$set('period', 'Monthly')" class="px-md py-1 rounded font-label-md transition-all {{ $period === 'Monthly' ? 'bg-white shadow-sm font-bold text-primary' : 'text-on-surface-variant' }}">Monthly</button>
+                <button wire:click="$set('period', 'Annually')" class="px-md py-1 rounded font-label-md transition-all {{ $period === 'Annually' ? 'bg-white shadow-sm font-bold text-primary' : 'text-on-surface-variant' }}">Annually</button>
             </div>
         </div>
-        <div class="h-[400px] w-full">
+        <div class="h-[400px] w-full" wire:ignore.self>
             <canvas id="salesPerformanceChart"></canvas>
         </div>
     </section>
@@ -150,97 +257,3 @@
     </section>
 </div>
 
-@push('scripts')
-<script>
-    function initSalesChart() {
-        const existingChart = Chart.getChart('salesPerformanceChart');
-        if (existingChart) {
-            existingChart.destroy();
-        }
-
-        const ctx = document.getElementById('salesPerformanceChart').getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
-        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
-        const chartLabels = @json($chartLabels);
-        const chartValues = @json($chartValues);
-
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartLabels,
-                datasets: [{
-                    label: 'Revenue (Rp)',
-                    data: chartValues,
-                    borderColor: '#10B981',
-                    borderWidth: 4,
-                    fill: true,
-                    backgroundColor: gradient,
-                    tension: 0.4,
-                    pointRadius: 6,
-                    pointBackgroundColor: '#FFFFFF',
-                    pointBorderColor: '#10B981',
-                    pointBorderWidth: 2,
-                    pointHoverRadius: 8,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: '#091426',
-                        titleFont: { family: 'Public Sans', size: 14 },
-                        bodyFont: { family: 'Public Sans', size: 16, weight: 'bold' },
-                        padding: 12,
-                        cornerRadius: 8,
-                        displayColors: false,
-                        callbacks: {
-                            label: function(context) {
-                                return 'Rp ' + context.parsed.y.toLocaleString('id-ID');
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: '#E2E8F0',
-                            borderDash: [5, 5]
-                        },
-                        ticks: {
-                            color: '#64748B',
-                            font: { family: 'Public Sans', size: 12 },
-                            callback: function(value) { return 'Rp ' + value.toLocaleString('id-ID'); }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            color: '#64748B',
-                            font: { family: 'Public Sans', size: 12 }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', initSalesChart);
-
-    document.addEventListener('livewire:navigated', initSalesChart);
-
-    Livewire.hook('morph.updated', ({ el }) => {
-        if (el.querySelector && el.querySelector('#salesPerformanceChart')) {
-            initSalesChart();
-        }
-    });
-</script>
-@endpush

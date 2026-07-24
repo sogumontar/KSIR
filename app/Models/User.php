@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'phone_number', 'birth_date', 'photo_path', 'status', 'is_admin', 'password', 'menu_sales_record', 'menu_goods_inventory', 'menu_sales_monitoring', 'menu_expenses', 'unique_code', 'menu_split_groups', 'bypass_split_limit', 'profile_photo', 'banner_photo', 'business_address', 'category', 'contact_channel', 'payment_instructions', 'store_name', 'store_description', 'public_email', 'support_phone', 'operating_status', 'timezone', 'role'])]
+#[Fillable(['name', 'email', 'phone_number', 'birth_date', 'photo_path', 'status', 'is_admin', 'password', 'menu_sales_record', 'menu_goods_inventory', 'menu_sales_monitoring', 'menu_expenses', 'menu_laundry', 'unique_code', 'menu_split_groups', 'bypass_split_limit', 'profile_photo', 'banner_photo', 'business_address', 'category', 'contact_channel', 'payment_instructions', 'store_name', 'store_description', 'public_email', 'support_phone', 'operating_status', 'timezone', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -33,6 +33,7 @@ class User extends Authenticatable
             'menu_goods_inventory' => 'boolean',
             'menu_sales_monitoring' => 'boolean',
             'menu_expenses' => 'boolean',
+            'menu_laundry' => 'boolean',
             'menu_split_groups' => 'boolean',
             'bypass_split_limit' => 'boolean',
         ];
@@ -84,6 +85,21 @@ class User extends Authenticatable
     public function customers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(User::class, 'merchant_customer', 'merchant_id', 'customer_id')->withTimestamps();
+    }
+
+    public function laundryServices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LaundryService::class);
+    }
+
+    public function laundryOrders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LaundryOrder::class);
+    }
+
+    public function merchantSetting(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(LaundryMerchantSetting::class);
     }
 
     public function getAvatarAttribute(): ?string

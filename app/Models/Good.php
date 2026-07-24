@@ -34,6 +34,16 @@ class Good extends Model
         return $this->hasMany(Transaction::class)->withTrashed();
     }
 
+    public function getImageUrlAttribute(): string
+    {
+        if ($this->image && \Storage::disk('public')->exists($this->image)) {
+            return asset('storage/' . $this->image);
+        }
+
+        // Return a high-quality stylized placeholder
+        return 'https://images.unsplash.com/photo-1553413077-190dd305871c?q=80&w=400&auto=format&fit=crop';
+    }
+
     protected static function booted()
     {
         static::updated(function ($good) {

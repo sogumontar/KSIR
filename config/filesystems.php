@@ -41,11 +41,16 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // STORAGE_URL can be set in production .env to override the default
+            // symlink-based URL with a PHP-served route (e.g. https://domain.com/files)
+            // This is required on shared hosting where storage:link symlinks
+            // cannot be made accessible from public_html.
+            'url' => env('STORAGE_URL', rtrim(env('APP_URL', 'http://localhost'), '/').'/storage'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
         ],
+
 
         's3' => [
             'driver' => 's3',

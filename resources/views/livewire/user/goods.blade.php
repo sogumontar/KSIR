@@ -522,7 +522,7 @@
                         <div class="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg mb-3">
                             <span class="material-symbols-outlined text-blue-600">description</span>
                             <span class="text-sm text-blue-800 font-medium">Current proof uploaded</span>
-                            <a href="{{ asset('storage/' . $existingProof) }}" target="_blank" class="text-sm text-blue-600 underline ml-2">View file</a>
+                            <a href="{{ Storage::disk('public')->url($existingProof) }}" target="_blank" class="text-sm text-blue-600 underline ml-2">View file</a>
                             <button wire:click="$set('existingProof', null)" class="text-red-500 hover:text-red-700 ml-auto" title="Remove existing proof">
                                 <span class="material-symbols-outlined text-sm">close</span>
                             </button>
@@ -605,7 +605,7 @@
                     <div class="font-semibold">Proof of Delivery:</div>
                     <div>
                         @if(data_get($viewRecord, 'proof'))
-                            <a href="{{ asset('storage/' . data_get($viewRecord, 'proof')) }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors">
+                            <a href="{{ Storage::disk('public')->url(data_get($viewRecord, 'proof')) }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors">
                                 <span class="material-symbols-outlined text-sm">description</span>
                                 <span class="text-sm font-medium">View / Download</span>
                             </a>

@@ -16,6 +16,8 @@ class SalesHistory extends Component
 
     public string $period = 'Monthly';
     public string $staffFilter = '';
+    public string $dateFrom = '';
+    public string $dateTo = '';
 
     public function mount()
     {
@@ -39,21 +41,27 @@ class SalesHistory extends Component
     {
         $query = \App\Models\Transaction::where('user_id', auth()->id());
 
+        if ($this->dateFrom) {
+            $query->whereDate('transaction_date', '>=', $this->dateFrom);
+        }
+
+        if ($this->dateTo) {
+            $query->whereDate('transaction_date', '<=', $this->dateTo);
+        }
+
         if ($this->staffFilter) {
             $query->whereHas('user', fn($q) => $q->where('name', $this->staffFilter));
         }
-
-        $query = $this->applyTableFilters($query, 'transaction_date');
 
         return $query;
     }
 
     protected function getChartData($query)
     {
-        $transactions = $query->orderBy('transaction_date')->get();
+        $transactions = $query->reorder()->orderBy('transaction_date', 'asc')->get();
 
         if ($transactions->isEmpty()) {
-            return ['labels' => [], 'values' => []];
+            return ['labels' => [], 'values' => [], 'unitValues' => []];
         }
 
         $grouped = $transactions->groupBy(function ($tx) {
@@ -74,6 +82,7 @@ class SalesHistory extends Component
 
         $labels = [];
         $values = [];
+        $unitValues = [];
 
         foreach ($grouped as $key => $group) {
             switch ($this->period) {
@@ -93,20 +102,26 @@ class SalesHistory extends Component
                     $labels[] = $group->first()->transaction_date->format('M Y');
             }
             $values[] = round($group->sum('total_price'), 2);
+            $unitValues[] = (int) $group->sum('quantity');
         }
 
-        return ['labels' => $labels, 'values' => $values];
+        return [
+            'labels' => $labels,
+            'values' => $values,
+            'unitValues' => $unitValues,
+        ];
     }
 
     public function render()
     {
         $filteredQuery = $this->getFilteredQuery();
 
-        $transactions = $filteredQuery->clone()->paginate(10);
+        $transactions = $this->applyTableFilters($filteredQuery->clone(), 'transaction_date')->paginate(10);
 
         $allFiltered = $filteredQuery->clone()->get();
         $totalRevenue = $allFiltered->sum('total_price');
         $totalTransactionsCount = $allFiltered->count();
+        $totalUnitsSold = $allFiltered->sum('quantity');
         $avgOrderValue = $totalTransactionsCount > 0 ? $totalRevenue / $totalTransactionsCount : 0;
 
         $chartData = $this->getChartData($filteredQuery->clone());
@@ -115,9 +130,11 @@ class SalesHistory extends Component
             'transactions' => $transactions,
             'realTotalRevenue' => $totalRevenue,
             'realTotalTransactions' => $totalTransactionsCount,
+            'realTotalUnits' => $totalUnitsSold,
             'realAvgOrderValue' => $avgOrderValue,
             'chartLabels' => $chartData['labels'],
             'chartValues' => $chartData['values'],
+            'unitChartValues' => $chartData['unitValues'],
         ]);
     }
 }

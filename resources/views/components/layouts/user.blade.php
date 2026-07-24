@@ -93,6 +93,14 @@
             <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
             <span class="font-label-lg text-label-lg">Customer Orders</span>
         </a>
+        <!-- Laundry -->
+        @if(auth()->user()?->menu_laundry)
+        <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('laundry.*') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
+           href="{{ route('laundry.dashboard') }}" wire:navigate @click="sidebarOpen = false">
+            <span class="material-symbols-outlined" data-icon="local_laundry_service">local_laundry_service</span>
+            <span class="font-label-lg text-label-lg">Laundry</span>
+        </a>
+        @endif
         <!-- Profile -->
         <a class="flex items-center gap-sm px-md py-sm {{ request()->routeIs('user.profile') ? 'text-white border-l-4 border-secondary bg-primary-container' : 'text-on-primary-container hover:text-white hover:bg-primary-container' }} transition-colors duration-200 cursor-pointer active:opacity-80"
            href="{{ route('user.profile') }}" wire:navigate @click="sidebarOpen = false">
@@ -103,7 +111,7 @@
     <div class="p-md mt-auto">
         <a href="{{ route('user.profile') }}" wire:navigate @click="sidebarOpen = false" class="flex items-center gap-md p-sm bg-primary-container rounded-lg hover:bg-primary/80 transition-colors cursor-pointer">
             @if(auth()->user()?->photo_path)
-                <img src="{{ asset('storage/' . auth()->user()->photo_path) }}" alt="{{ auth()->user()?->name }}" class="w-10 h-10 rounded-full object-cover bg-secondary">
+                <img src="{{ Storage::disk('public')->url(auth()->user()->photo_path) }}" alt="{{ auth()->user()?->name }}" class="w-10 h-10 rounded-full object-cover bg-secondary">
             @else
                 <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-bold">
                     {{ strtoupper(substr(auth()->user()?->name ?? 'User', 0, 2)) }}
@@ -187,6 +195,7 @@
             if (request()->routeIs('user.expenses') && !auth()->user()?->menu_expenses) $isAuthorized = false;
             if (request()->routeIs('user.groups') && !auth()->user()?->menu_split_groups) $isAuthorized = false;
             if (request()->routeIs('user.group-detail') && !auth()->user()?->menu_split_groups) $isAuthorized = false;
+            if (request()->routeIs('laundry.*') && !auth()->user()?->menu_laundry) $isAuthorized = false;
         @endphp
 
         @if(!$isAuthorized)

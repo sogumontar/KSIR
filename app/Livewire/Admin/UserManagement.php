@@ -43,6 +43,7 @@ class UserManagement extends Component
     public bool $editMenuGoodsInventory = true;
     public bool $editMenuSalesMonitoring = true;
     public bool $editMenuExpenses = true;
+    public bool $editMenuLaundry = false;
 
     public function updatingSearch()
     {
@@ -58,6 +59,7 @@ class UserManagement extends Component
         $this->editMenuGoodsInventory = true;
         $this->editMenuSalesMonitoring = true;
         $this->editMenuExpenses = true;
+        $this->editMenuLaundry = false;
         $this->showEditSidebar = true;
     }
 
@@ -78,6 +80,7 @@ class UserManagement extends Component
         $this->editMenuGoodsInventory = $user->menu_goods_inventory;
         $this->editMenuSalesMonitoring = $user->menu_sales_monitoring;
         $this->editMenuExpenses = $user->menu_expenses;
+        $this->editMenuLaundry = $user->menu_laundry;
         $this->showEditSidebar = true;
     }
 
@@ -97,6 +100,7 @@ class UserManagement extends Component
             'editMenuGoodsInventory' => 'boolean',
             'editMenuSalesMonitoring' => 'boolean',
             'editMenuExpenses' => 'boolean',
+            'editMenuLaundry' => 'boolean',
         ];
 
         if ($isAdd) {
@@ -136,6 +140,7 @@ class UserManagement extends Component
                 'menu_goods_inventory' => $this->editMenuGoodsInventory,
                 'menu_sales_monitoring' => $this->editMenuSalesMonitoring,
                 'menu_expenses' => $this->editMenuExpenses,
+                'menu_laundry' => $this->editMenuLaundry,
             ]);
         } else {
             $user = User::findOrFail($this->editingUserId);
@@ -150,6 +155,7 @@ class UserManagement extends Component
                 'menu_goods_inventory' => $this->editMenuGoodsInventory,
                 'menu_sales_monitoring' => $this->editMenuSalesMonitoring,
                 'menu_expenses' => $this->editMenuExpenses,
+                'menu_laundry' => $this->editMenuLaundry,
             ];
 
             if ($this->editPassword) {

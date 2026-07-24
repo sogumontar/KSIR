@@ -50,11 +50,14 @@ class CustomerRegistration extends Component
             'menu_split_groups' => false,
         ]);
 
-        if ($this->merchantToken) {
+        $token = $this->merchantToken ?? session('merchant_invite_token');
+
+        if ($token) {
             // Bind merchant to customer
-            $merchant = User::where('unique_code', $this->merchantToken)->first();
+            $merchant = User::where('unique_code', $token)->first();
             if ($merchant) {
                 $user->merchants()->attach($merchant->id);
+                session()->forget('merchant_invite_token');
             }
         }
 

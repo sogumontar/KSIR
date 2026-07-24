@@ -32,6 +32,15 @@ class Login extends Component
 
             $user = Auth::user();
 
+            // Handle pending merchant invitation
+            if ($token = session('merchant_invite_token')) {
+                $merchant = \App\Models\User::where('unique_code', $token)->first();
+                if ($merchant && $user->role === 'customer') {
+                    $user->merchants()->syncWithoutDetaching([$merchant->id]);
+                    session()->forget('merchant_invite_token');
+                }
+            }
+
             if ($user->is_admin) {
                 return redirect()->intended(route('admin.dashboard'));
             }
