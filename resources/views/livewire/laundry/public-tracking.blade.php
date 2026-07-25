@@ -46,7 +46,7 @@
                 {{-- Merchant branding --}}
                 <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white mb-4 overflow-hidden shadow-md border border-white/20">
                     @if($order->user->profile_photo)
-                        <img src="{{ Storage::disk('public')->url($order->user->profile_photo) }}" alt="Logo" class="w-full h-full object-cover">
+                        <img src="{{ storage_url($order->user->profile_photo) }}" alt="Logo" class="w-full h-full object-cover">
                     @else
                         <span class="material-symbols-outlined text-4xl text-slate-800">local_laundry_service</span>
                     @endif
@@ -254,7 +254,7 @@
                             <div class="relative group/photo">
                                 <div class="absolute top-2 left-2 z-10 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg">Before</div>
                                 <img
-                                    src="{{ Storage::disk('public')->url($order->photo_before) }}"
+                                    src="{{ storage_url($order->photo_before) }}"
                                     alt="Kondisi Sebelum"
                                     class="w-full aspect-square object-cover rounded-xl border border-slate-200 shadow-sm group-hover/photo:shadow-md transition-shadow cursor-pointer"
                                     onclick="window.open(this.src, '_blank')"
@@ -265,7 +265,7 @@
                             <div class="relative group/photo">
                                 <div class="absolute top-2 left-2 z-10 bg-emerald-600/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg">After</div>
                                 <img
-                                    src="{{ Storage::disk('public')->url($order->photo_after) }}"
+                                    src="{{ storage_url($order->photo_after) }}"
                                     alt="Kondisi Sesudah"
                                     class="w-full aspect-square object-cover rounded-xl border border-slate-200 shadow-sm group-hover/photo:shadow-md transition-shadow cursor-pointer"
                                     onclick="window.open(this.src, '_blank')"
@@ -285,7 +285,7 @@
                     </div>
                     <div class="inline-block bg-white p-3 rounded-2xl shadow-md border border-slate-100">
                         <img
-                            src="{{ Storage::disk('public')->url($merchantSetting->qr_code_path) }}"
+                            src="{{ storage_url($merchantSetting->qr_code_path) }}"
                             alt="QR Code Pembayaran"
                             class="w-44 h-44 object-contain"
                         >

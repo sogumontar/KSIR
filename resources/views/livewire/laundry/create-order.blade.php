@@ -1,7 +1,7 @@
 <div>
     <!-- Header -->
     <div class="flex items-center gap-4 mb-8">
-        <a href="/laundry/dashboard" wire:navigate class="btn-icon bg-white shadow-sm hover:bg-slate-50 border border-slate-200 w-10 h-10 rounded-full flex items-center justify-center text-slate-600">
+        <a href="{{ route('laundry.dashboard') }}" wire:navigate class="btn-icon bg-white shadow-sm hover:bg-slate-50 border border-slate-200 w-10 h-10 rounded-full flex items-center justify-center text-slate-600">
             <span class="material-symbols-outlined text-sm">arrow_back</span>
         </a>
         <h2 class="font-headline-lg text-primary m-0">Create New Order</h2>

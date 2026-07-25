@@ -1,10 +1,10 @@
 <div>
     <!-- Sub-nav pills -->
     <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
-        <a href="/laundry/dashboard" wire:navigate class="px-4 py-2 rounded-full font-label-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap">Dashboard</a>
-        <a href="/laundry/services" wire:navigate class="px-4 py-2 rounded-full font-label-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap">Services</a>
-        <a href="/laundry/promos" wire:navigate class="px-4 py-2 rounded-full font-label-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap">Promos</a>
-        <a href="/laundry/settings" wire:navigate class="px-4 py-2 rounded-full font-label-md bg-secondary text-white shadow-sm whitespace-nowrap">Settings</a>
+        <a href="{{ route('laundry.dashboard') }}" wire:navigate class="px-4 py-2 rounded-full font-label-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap">Dashboard</a>
+        <a href="{{ route('laundry.services') }}" wire:navigate class="px-4 py-2 rounded-full font-label-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap">Services</a>
+        <a href="{{ route('laundry.promos') }}" wire:navigate class="px-4 py-2 rounded-full font-label-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap">Promos</a>
+        <a href="{{ route('laundry.settings') }}" wire:navigate class="px-4 py-2 rounded-full font-label-md bg-secondary text-white shadow-sm whitespace-nowrap">Settings</a>
     </div>
 
     <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-md mb-8">
@@ -28,7 +28,7 @@
             @if($existingQrPath)
                 <div class="mb-6 p-4 border border-slate-200 rounded-lg flex flex-col items-center bg-slate-50">
                     <p class="text-sm text-slate-500 mb-4">Current QR Code</p>
-                    <img src="{{ Storage::disk('public')->url($existingQrPath) }}" alt="QR Code" class="w-48 h-48 object-contain rounded bg-white shadow-sm border border-slate-100">
+                    <img src="{{ storage_url($existingQrPath) }}" alt="QR Code" class="w-48 h-48 object-contain rounded bg-white shadow-sm border border-slate-100">
                 </div>
             @endif
 

@@ -2,7 +2,7 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div class="flex items-center gap-4">
-            <a href="/laundry/dashboard" wire:navigate class="btn-icon bg-white shadow-sm hover:bg-slate-50 border border-slate-200 w-10 h-10 rounded-full flex items-center justify-center text-slate-600">
+            <a href="{{ route('laundry.dashboard') }}" wire:navigate class="btn-icon bg-white shadow-sm hover:bg-slate-50 border border-slate-200 w-10 h-10 rounded-full flex items-center justify-center text-slate-600">
                 <span class="material-symbols-outlined text-sm">arrow_back</span>
             </a>
             <div>
@@ -105,7 +105,7 @@
                     <div>
                         <h4 class="font-label-lg text-slate-700 mb-3 text-center">Before Wash</h4>
                         @if($order->photo_before)
-                            <img src="{{ Storage::disk('public')->url($order->photo_before) }}" alt="Before" class="w-full h-48 object-cover rounded-xl shadow-sm border border-slate-200">
+                            <img src="{{ storage_url($order->photo_before) }}" alt="Before" class="w-full h-48 object-cover rounded-xl shadow-sm border border-slate-200">
                         @else
                             <div class="w-full h-48 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 bg-slate-50">
                                 No photo provided
@@ -116,7 +116,7 @@
                     <div>
                         <h4 class="font-label-lg text-slate-700 mb-3 text-center">After Wash</h4>
                         @if($order->photo_after)
-                            <img src="{{ Storage::disk('public')->url($order->photo_after) }}" alt="After" class="w-full h-48 object-cover rounded-xl shadow-sm border border-slate-200">
+                            <img src="{{ storage_url($order->photo_after) }}" alt="After" class="w-full h-48 object-cover rounded-xl shadow-sm border border-slate-200">
                         @else
                             <label class="w-full h-48 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer bg-white relative">
                                 <span class="material-symbols-outlined text-3xl mb-2 text-slate-400">upload_file</span>

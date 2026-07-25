@@ -28,7 +28,7 @@
 </head>
 <body>
     <div class="text-center">
-        <div class="merchant-name">{{ $order->user->name ?? 'Laundry Shop' }}</div>
+        <div class="merchant-name">{{ $order->user->store_name ?? $order->user->name ?? 'Laundry Shop' }}</div>
         <div>Receipt</div>
     </div>
     
