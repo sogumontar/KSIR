@@ -5,6 +5,7 @@ namespace App\Livewire\Laundry;
 use App\Models\LaundryOrder;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -120,46 +121,42 @@ class Dashboard extends Component
 
         // ─── KPI Stats ───────────────────────────────────────────────────────────
         $totalOrdersToday = LaundryOrder::where('user_id', $user->id)
-            ->whereDate('created_at', $today)
+            ->whereHas('items', fn($q) => $q->whereDate('date_in', $today))
             ->count();
 
-        $revenueToday = LaundryOrder::where('user_id', $user->id)
-            ->whereDate('created_at', $today)
-            ->where('payment_status', 'paid')
+        $totalAmountAllTime = LaundryOrder::where('user_id', $user->id)->sum('total_amount');
+        $paidAmountAllTime  = LaundryOrder::where('user_id', $user->id)->where('payment_status', 'paid')->sum('total_amount');
+        $unpaidAmountAllTime= LaundryOrder::where('user_id', $user->id)->where('payment_status', 'unpaid')->sum('total_amount');
+
+        $totalUnpaidOutstanding = LaundryOrder::where('user_id', $user->id)
+            ->where('payment_status', 'unpaid')
+            ->whereNotIn('status', ['cancelled'])
             ->sum('total_amount');
 
         $activeOrdersCount = LaundryOrder::where('user_id', $user->id)
             ->whereIn('status', ['pending', 'processing', 'ready'])
             ->count();
 
-        // ─── Revenue Trend chart (last 14 days) ─────────────────────────────────
-        $revenueTrendData = LaundryOrder::where('user_id', $user->id)
-            ->whereDate('created_at', '>=', Carbon::now()->subDays(13))
-            ->selectRaw("DATE(created_at) as date, sum(total_amount) as revenue")
-            ->groupBy('date')
-            ->orderBy('date')
+        // ─── Revenue & Orders Trend (Based on Date In, last 14 days) ──────────────
+        $trendData = LaundryOrder::where('laundry_orders.user_id', $user->id)
+            ->join(DB::raw('(SELECT laundry_order_id, MIN(date_in) as date_in FROM laundry_order_items GROUP BY laundry_order_id) as items_date'), 'laundry_orders.id', '=', 'items_date.laundry_order_id')
+            ->whereDate('items_date.date_in', '>=', Carbon::now()->subDays(13))
+            ->selectRaw("items_date.date_in as date,
+                         SUM(laundry_orders.total_amount) as total_amount,
+                         SUM(CASE WHEN laundry_orders.payment_status = 'paid' THEN laundry_orders.total_amount ELSE 0 END) as paid_amount,
+                         SUM(CASE WHEN laundry_orders.payment_status = 'unpaid' THEN laundry_orders.total_amount ELSE 0 END) as unpaid_amount,
+                         COUNT(laundry_orders.id) as tx_count")
+            ->groupBy('items_date.date_in')
+            ->orderBy('items_date.date_in')
             ->get();
 
-        $revenueLabels = $revenueTrendData->pluck('date')
-            ->map(fn($d) => Carbon::parse($d)->format('M d'))
-            ->toArray();
-        $revenueValues = $revenueTrendData->pluck('revenue')->map(fn($v) => (float) $v)->toArray();
-
-        // ─── Transaction Count chart (last 14 days) ──────────────────────────────
-        $txCountData = LaundryOrder::where('user_id', $user->id)
-            ->whereDate('created_at', '>=', Carbon::now()->subDays(13))
-            ->selectRaw("DATE(created_at) as date, count(*) as tx_count")
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        $txCountLabels = $txCountData->pluck('date')
-            ->map(fn($d) => Carbon::parse($d)->format('M d'))
-            ->toArray();
-        $txCountValues = $txCountData->pluck('tx_count')->map(fn($v) => (int) $v)->toArray();
+        $chartLabels    = $trendData->pluck('date')->map(fn($d) => Carbon::parse($d)->format('M d'))->toArray();
+        $totalValues    = $trendData->pluck('total_amount')->map(fn($v) => (float) $v)->toArray();
+        $paidValues     = $trendData->pluck('paid_amount')->map(fn($v) => (float) $v)->toArray();
+        $unpaidValues   = $trendData->pluck('unpaid_amount')->map(fn($v) => (float) $v)->toArray();
+        $txCountValues  = $trendData->pluck('tx_count')->map(fn($v) => (int) $v)->toArray();
 
         // ─── Orders due today & tomorrow ─────────────────────────────────────────
-        // Query orders that have at least one item due today or tomorrow
         $dueSoonOrders = LaundryOrder::where('user_id', $user->id)
             ->whereNotIn('status', ['completed', 'cancelled'])
             ->whereHas('items', function ($q) use ($today, $tomorrow) {
@@ -186,18 +183,21 @@ class Dashboard extends Component
             });
 
         return view('livewire.laundry.dashboard', [
-            'orders'           => $orders,
-            'totalOrdersToday' => $totalOrdersToday,
-            'revenueToday'     => $revenueToday,
-            'activeOrdersCount'=> $activeOrdersCount,
-            // Revenue trend
-            'revenueLabels'    => $revenueLabels,
-            'revenueValues'    => $revenueValues,
-            // Transaction count trend
-            'txCountLabels'    => $txCountLabels,
-            'txCountValues'    => $txCountValues,
+            'orders'                 => $orders,
+            'totalOrdersToday'       => $totalOrdersToday,
+            'totalAmountAllTime'     => $totalAmountAllTime,
+            'paidAmountAllTime'      => $paidAmountAllTime,
+            'unpaidAmountAllTime'    => $unpaidAmountAllTime,
+            'totalUnpaidOutstanding' => $totalUnpaidOutstanding,
+            'activeOrdersCount'      => $activeOrdersCount,
+            // Trends based on Date In
+            'chartLabels'            => $chartLabels,
+            'totalValues'            => $totalValues,
+            'paidValues'             => $paidValues,
+            'unpaidValues'           => $unpaidValues,
+            'txCountValues'          => $txCountValues,
             // Due soon
-            'dueSoonOrders'    => $dueSoonOrders,
+            'dueSoonOrders'          => $dueSoonOrders,
         ]);
     }
 }

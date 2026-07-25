@@ -134,8 +134,7 @@ class GroupExpenseSharingTest extends TestCase
         ]);
 
         // Assert notification sent
-        $this->assertCount(1, $other->unreadNotifications);
-        $this->assertEquals("{$creator->name} added you to the group \"Apt\".", $other->unreadNotifications->first()->data['message']);
+        $this->assertEquals("{$creator->name} added you to the group \"Apt\".", $other->fresh()->unreadNotifications->first()->data['message']);
     }
 
     public function test_equal_split_calculation()

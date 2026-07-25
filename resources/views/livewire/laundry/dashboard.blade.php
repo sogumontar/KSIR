@@ -13,40 +13,66 @@
         const ctx = document.getElementById('laundryRevenueChart');
         if (!ctx) return;
         const c = ctx.getContext('2d');
-        const grad = c.createLinearGradient(0, 0, 0, 260);
-        grad.addColorStop(0, 'rgba(0,108,73,0.35)');
-        grad.addColorStop(1, 'rgba(0,108,73,0)');
+        
         this.revenueChart = new Chart(c, {
             type: 'line',
             data: {
-                labels: @js($revenueLabels),
-                datasets: [{
-                    label: 'Revenue (Rp)',
-                    data: @js($revenueValues),
-                    borderColor: '#006c49',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: grad,
-                    pointRadius: 5,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#006c49',
-                    pointBorderWidth: 2,
-                    pointHoverRadius: 7,
-                }]
+                labels: @js($chartLabels),
+                datasets: [
+                    {
+                        label: 'Total Amount',
+                        data: @js($totalValues),
+                        borderColor: '#4F46E5',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: false,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#4F46E5',
+                    },
+                    {
+                        label: 'Paid Amount',
+                        data: @js($paidValues),
+                        borderColor: '#10B981',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#10B981',
+                    },
+                    {
+                        label: 'Unpaid Amount',
+                        data: @js($unpaidValues),
+                        borderColor: '#F59E0B',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0.3,
+                        fill: false,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#F59E0B',
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false },
+                    legend: { 
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            font: { size: 12, weight: '500' }
+                        }
+                    },
                     tooltip: {
                         backgroundColor: '#091426',
-                        padding: 10,
+                        padding: 12,
                         cornerRadius: 8,
-                        displayColors: false,
                         callbacks: {
-                            label: ctx => 'Rp ' + ctx.parsed.y.toLocaleString('id-ID')
+                            label: function(ctx) {
+                                return ctx.dataset.label + ': Rp ' + ctx.parsed.y.toLocaleString('id-ID');
+                            }
                         }
                     }
                 },
@@ -74,9 +100,9 @@
         this.txChart = new Chart(c, {
             type: 'bar',
             data: {
-                labels: @js($txCountLabels),
+                labels: @js($chartLabels),
                 datasets: [{
-                    label: 'Orders',
+                    label: 'Orders (Date In)',
                     data: @js($txCountValues),
                     backgroundColor: grad,
                     borderColor: '#3B82F6',
@@ -153,67 +179,91 @@
         <a href="{{ route('laundry.settings') }}" wire:navigate class="px-4 py-2 rounded-full font-label-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap">Settings</a>
     </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- KPI Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Today's Orders -->
         <div class="card-surface p-6 flex items-center justify-between">
             <div>
-                <p class="text-sm font-label-md text-slate-500 uppercase">Today's Orders</p>
+                <p class="text-xs font-label-md text-slate-500 uppercase tracking-wider">Today's Orders (Date In)</p>
                 <h3 class="text-3xl font-headline-lg text-primary mt-2">{{ number_format($totalOrdersToday) }}</h3>
             </div>
             <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                 <span class="material-symbols-outlined">shopping_bag</span>
             </div>
         </div>
-        <div class="card-surface p-6 flex items-center justify-between">
-            <div>
-                <p class="text-sm font-label-md text-slate-500 uppercase">Today's Revenue</p>
-                <h3 class="text-3xl font-headline-lg text-primary mt-2">Rp{{ number_format($revenueToday, 0) }}</h3>
+
+        <!-- Total Amount (All Dates) -->
+        <div class="card-surface p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-label-md text-slate-500 uppercase tracking-wider">Total Amount (All Dates)</p>
+                    <h3 class="text-2xl font-headline-lg text-slate-900 mt-2">Rp{{ number_format($totalAmountAllTime, 0) }}</h3>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                    <span class="material-symbols-outlined">payments</span>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                <span class="material-symbols-outlined">payments</span>
+            <div class="mt-3 pt-3 border-t border-slate-100 flex justify-between text-xs font-medium">
+                <span class="text-emerald-600">Paid: Rp{{ number_format($paidAmountAllTime, 0) }}</span>
+                <span class="text-amber-600">Unpaid: Rp{{ number_format($unpaidAmountAllTime, 0) }}</span>
             </div>
         </div>
+
+        <!-- Unpaid Outstanding (All Active Orders) -->
         <div class="card-surface p-6 flex items-center justify-between">
             <div>
-                <p class="text-sm font-label-md text-slate-500 uppercase">Active Orders</p>
-                <h3 class="text-3xl font-headline-lg text-primary mt-2">{{ number_format($activeOrdersCount) }}</h3>
+                <p class="text-xs font-label-md text-slate-500 uppercase tracking-wider">Unpaid Outstanding</p>
+                <h3 class="text-2xl font-headline-lg text-amber-600 mt-2">Rp{{ number_format($totalUnpaidOutstanding, 0) }}</h3>
+                <p class="text-[11px] text-slate-400 mt-1">Pending collection from customers</p>
             </div>
             <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
                 <span class="material-symbols-outlined">pending_actions</span>
             </div>
         </div>
+
+        <!-- Active Orders Count -->
+        <div class="card-surface p-6 flex items-center justify-between">
+            <div>
+                <p class="text-xs font-label-md text-slate-500 uppercase tracking-wider">Active Orders</p>
+                <h3 class="text-3xl font-headline-lg text-primary mt-2">{{ number_format($activeOrdersCount) }}</h3>
+                <p class="text-[11px] text-slate-400 mt-1">Pending, processing or ready</p>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <span class="material-symbols-outlined">local_laundry_service</span>
+            </div>
+        </div>
     </div>
 
-    <!-- Charts Row (Revenue Trend + Transaction Count) -->
+    <!-- Charts Row (Revenue Trend + Transaction Count based on Date In) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Revenue Trend -->
+        <!-- Revenue Trend based on Date In -->
         <div class="card-surface p-6">
             <div class="flex justify-between items-center mb-4">
                 <div>
-                    <h3 class="font-headline-md text-primary">Revenue Trend</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Last 14 days</p>
+                    <h3 class="font-headline-md text-primary">Revenue Trend (Date In)</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Total, Paid, and Unpaid amounts over last 14 days</p>
                 </div>
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-emerald-600 text-lg">show_chart</span>
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-indigo-600 text-lg">show_chart</span>
                 </div>
             </div>
-            <div class="h-[240px] w-full" wire:ignore>
+            <div class="h-[260px] w-full" wire:ignore>
                 <canvas id="laundryRevenueChart"></canvas>
             </div>
         </div>
 
-        <!-- Transaction Count Trend -->
+        <!-- Transaction Count Trend based on Date In -->
         <div class="card-surface p-6">
             <div class="flex justify-between items-center mb-4">
                 <div>
-                    <h3 class="font-headline-md text-primary">Orders Count</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Last 14 days</p>
+                    <h3 class="font-headline-md text-primary">Orders Count (Date In)</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Number of orders received by Date In over last 14 days</p>
                 </div>
                 <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
                     <span class="material-symbols-outlined text-blue-500 text-lg">bar_chart</span>
                 </div>
             </div>
-            <div class="h-[240px] w-full" wire:ignore>
+            <div class="h-[260px] w-full" wire:ignore>
                 <canvas id="laundryTxChart"></canvas>
             </div>
         </div>

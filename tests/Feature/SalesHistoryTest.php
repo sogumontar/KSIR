@@ -17,7 +17,7 @@ class SalesHistoryTest extends TestCase
         $user = User::factory()->create([
             'role' => 'staff',
             'is_admin' => false,
-            'menu_sales' => true,
+            'menu_sales_record' => true,
         ]);
 
         Transaction::create([
