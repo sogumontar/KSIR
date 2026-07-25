@@ -70,6 +70,13 @@ class OrderDetail extends Component
         return "https://wa.me/{$phone}?text={$text}";
     }
 
+    public function deleteOrder()
+    {
+        $this->order->delete();
+        session()->flash('status_message', 'Order ' . $this->order->order_code . ' deleted successfully.');
+        return redirect()->route('laundry.dashboard');
+    }
+
     public function render()
     {
         return view('livewire.laundry.order-detail');

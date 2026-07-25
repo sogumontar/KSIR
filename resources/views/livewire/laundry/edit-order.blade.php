@@ -1,10 +1,13 @@
 <div>
     <!-- Header -->
     <div class="flex items-center gap-4 mb-8">
-        <a href="{{ route('laundry.dashboard') }}" wire:navigate class="btn-icon bg-white shadow-sm hover:bg-slate-50 border border-slate-200 w-10 h-10 rounded-full flex items-center justify-center text-slate-600">
+        <a href="{{ route('laundry.orders.show', $order->id) }}" wire:navigate class="btn-icon bg-white shadow-sm hover:bg-slate-50 border border-slate-200 w-10 h-10 rounded-full flex items-center justify-center text-slate-600">
             <span class="material-symbols-outlined text-sm">arrow_back</span>
         </a>
-        <h2 class="font-headline-lg text-primary m-0">Create New Order</h2>
+        <div>
+            <h2 class="font-headline-lg text-primary m-0">Edit Order {{ $order->order_code }}</h2>
+            <p class="text-xs text-slate-500 mt-1">Modify order items, customer info, status, or promo.</p>
+        </div>
     </div>
 
     <form wire:submit="submit" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -33,9 +36,15 @@
                 
                 <div>
                     <label class="form-label block mb-2">Condition Photo Before (Optional)</label>
+                    @if($existingPhotoBefore && !$photoBefore)
+                        <div class="mb-3 flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <img src="{{ storage_url($existingPhotoBefore) }}" alt="Current before photo" class="w-16 h-16 object-cover rounded-lg">
+                            <span class="text-xs text-slate-600 font-medium">Current before photo uploaded</span>
+                        </div>
+                    @endif
                     <label class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-slate-50 transition-colors cursor-pointer relative flex flex-col items-center justify-center">
                         <span class="material-symbols-outlined text-3xl text-slate-400 mb-2">add_a_photo</span>
-                        <p class="font-label-md text-slate-700">Click to upload photo</p>
+                        <p class="font-label-md text-slate-700">{{ $existingPhotoBefore ? 'Click to replace photo' : 'Click to upload photo' }}</p>
                         <input accept="image/*" class="hidden" type="file" wire:model="photoBefore">
 
                         {{-- Livewire Uploading Status --}}
@@ -49,7 +58,7 @@
                     @if($photoBefore)
                         <div class="mt-3 text-sm text-green-700 flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm">check_circle</span>
-                            Photo selected: {{ $photoBefore->getClientOriginalName() }}
+                            New photo selected: {{ $photoBefore->getClientOriginalName() }}
                         </div>
                     @endif
                     @error('photoBefore') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
@@ -162,6 +171,39 @@
 
         <!-- Sidebar Summary -->
         <div class="space-y-6">
+            <!-- Status & Payment Card -->
+            <div class="card-surface p-6">
+                <div class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3">
+                    <span class="material-symbols-outlined text-secondary">published_with_changes</span>
+                    <h3 class="font-headline-md text-slate-900 m-0">Status</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label block mb-2">Order Status</label>
+                    <select wire:model="orderStatus" class="form-input w-full">
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="ready">Ready</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label block mb-2">Payment Status</label>
+                    <div class="flex rounded-lg overflow-hidden border border-slate-200">
+                        <label class="flex-1 text-center cursor-pointer">
+                            <input wire:model="paymentStatus" type="radio" value="unpaid" class="peer sr-only">
+                            <div class="py-2 peer-checked:bg-amber-100 peer-checked:text-amber-800 peer-checked:font-bold text-slate-500 bg-slate-50 transition-colors">Unpaid</div>
+                        </label>
+                        <label class="flex-1 text-center cursor-pointer border-l border-slate-200">
+                            <input wire:model="paymentStatus" type="radio" value="paid" class="peer sr-only">
+                            <div class="py-2 peer-checked:bg-green-100 peer-checked:text-green-800 peer-checked:font-bold text-slate-500 bg-slate-50 transition-colors">Paid</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <!-- Promo Card -->
             <div class="card-surface p-6">
                 <div class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3">
@@ -207,27 +249,18 @@
                     </div>
                 </div>
 
-                <div class="mb-6">
-                    <label class="form-label block mb-2">Payment Status</label>
-                    <div class="flex rounded-lg overflow-hidden border border-slate-200">
-                        <label class="flex-1 text-center cursor-pointer">
-                            <input wire:model="paymentStatus" type="radio" value="unpaid" class="peer sr-only">
-                            <div class="py-2 peer-checked:bg-amber-100 peer-checked:text-amber-800 peer-checked:font-bold text-slate-500 bg-slate-50 transition-colors">Unpaid</div>
-                        </label>
-                        <label class="flex-1 text-center cursor-pointer border-l border-slate-200">
-                            <input wire:model="paymentStatus" type="radio" value="paid" class="peer sr-only">
-                            <div class="py-2 peer-checked:bg-green-100 peer-checked:text-green-800 peer-checked:font-bold text-slate-500 bg-slate-50 transition-colors">Paid</div>
-                        </label>
-                    </div>
+                <div class="flex gap-3">
+                    <a href="{{ route('laundry.orders.show', $order->id) }}" wire:navigate class="btn-ghost flex-1 justify-center border border-slate-200">
+                        Cancel
+                    </a>
+                    <button type="submit" wire:loading.attr="disabled" wire:target="submit, photoBefore" class="btn-primary flex-1 justify-center py-3 text-base shadow-sm relative">
+                        <span wire:loading.remove wire:target="submit" class="flex items-center gap-2">
+                            <span class="material-symbols-outlined">save</span>
+                            Save Changes
+                        </span>
+                        <span wire:loading wire:target="submit">Saving...</span>
+                    </button>
                 </div>
-
-                <button type="submit" wire:loading.attr="disabled" wire:target="submit, photoBefore" class="btn-primary w-full justify-center py-3 text-base shadow-sm relative">
-                    <span wire:loading.remove wire:target="submit" class="flex items-center gap-2">
-                        <span class="material-symbols-outlined">check_circle</span>
-                        Create Order
-                    </span>
-                    <span wire:loading wire:target="submit">Processing...</span>
-                </button>
             </div>
         </div>
     </form>

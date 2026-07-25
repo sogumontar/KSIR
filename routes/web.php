@@ -50,6 +50,7 @@ Route::middleware(['auth', 'user'])->prefix('laundry')->name('laundry.')->group(
     Route::get('/settings', \App\Livewire\Laundry\Settings::class)->name('settings');
     Route::get('/orders/create', \App\Livewire\Laundry\CreateOrder::class)->name('orders.create');
     Route::get('/orders/{id}', \App\Livewire\Laundry\OrderDetail::class)->name('orders.show');
+    Route::get('/orders/{id}/edit', \App\Livewire\Laundry\EditOrder::class)->name('orders.edit');
     Route::get('/orders/{id}/receipt', [\App\Http\Controllers\LaundryReceiptController::class, 'download'])->name('orders.receipt');
 });
 

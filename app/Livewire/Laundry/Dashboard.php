@@ -46,6 +46,16 @@ class Dashboard extends Component
         $this->storeStatus = $setting->store_status ?? 'open';
     }
 
+    public function deleteOrder($id)
+    {
+        $order = LaundryOrder::where('user_id', Auth::id())->find($id);
+        if ($order) {
+            $code = $order->order_code;
+            $order->delete();
+            session()->flash('status_message', "Order {$code} deleted successfully.");
+        }
+    }
+
     public function changeStoreStatus($newStatus)
     {
         if (in_array($newStatus, ['open', 'closed', 'unattended'])) {

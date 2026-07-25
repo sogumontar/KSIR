@@ -25,7 +25,11 @@
             </div>
         </div>
         
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('laundry.orders.edit', $order->id) }}" wire:navigate class="btn-ghost border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 gap-1.5">
+                <span class="material-symbols-outlined text-amber-700 text-sm">edit</span>
+                Edit Order
+            </a>
             <a href="{{ route('laundry.orders.receipt', $order->id) }}" target="_blank" class="btn-ghost border border-slate-200 bg-white hover:bg-slate-50 gap-2">
                 <span class="material-symbols-outlined text-slate-600">receipt_long</span>
                 Print Receipt
@@ -34,6 +38,15 @@
                 <span class="material-symbols-outlined text-slate-600">public</span>
                 Tracking Link
             </a>
+            <button
+                type="button"
+                wire:click="deleteOrder"
+                wire:confirm="Are you sure you want to delete order {{ $order->order_code }}? This action cannot be undone."
+                class="btn-ghost border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 gap-1.5"
+            >
+                <span class="material-symbols-outlined text-red-600 text-sm">delete</span>
+                Delete
+            </button>
         </div>
     </div>
 
@@ -60,9 +73,10 @@
                             <tr class="bg-slate-50">
                                 <th class="table-header font-label-md">Service</th>
                                 <th class="table-header font-label-md">Treatment</th>
+                                <th class="table-header font-label-md text-center">Qty</th>
                                 <th class="table-header font-label-md">Date In</th>
                                 <th class="table-header font-label-md">Est. Done</th>
-                                <th class="table-header font-label-md text-right">Price</th>
+                                <th class="table-header font-label-md text-right">Subtotal</th>
                             </tr>
                         </thead>
                         <tbody class="font-body-md text-slate-700 divide-y divide-slate-100">
@@ -75,16 +89,17 @@
                                     @endif
                                 </td>
                                 <td class="table-cell text-sm">{{ $item->treatment ?: '-' }}</td>
+                                <td class="table-cell text-center text-sm font-semibold">{{ (float)$item->qty == (int)$item->qty ? (int)$item->qty : number_format($item->qty, 2) }}</td>
                                 <td class="table-cell text-sm">{{ \Carbon\Carbon::parse($item->date_in)->format('M d') }}</td>
                                 <td class="table-cell text-sm">{{ \Carbon\Carbon::parse($item->date_estimated_done)->format('M d') }}</td>
                                 <td class="table-cell text-right font-bold">
                                     @if($item->is_free)
                                         <span class="font-bold text-emerald-600">Rp0</span>
-                                    @elseif($item->final_price < $item->price_snapshot)
-                                        <span class="text-xs text-slate-400 line-through block font-normal">Rp{{ number_format($item->price_snapshot, 0) }}</span>
+                                    @elseif($item->final_price < $item->item_subtotal)
+                                        <span class="text-xs text-slate-400 line-through block font-normal">Rp{{ number_format($item->item_subtotal, 0) }}</span>
                                         <span class="font-bold text-slate-900">Rp{{ number_format($item->final_price, 0) }}</span>
                                     @else
-                                        <span>Rp{{ number_format($item->price_snapshot, 0) }}</span>
+                                        <span>Rp{{ number_format($item->item_subtotal, 0) }}</span>
                                     @endif
                                 </td>
                             </tr>

@@ -346,9 +346,23 @@
                             </span>
                         </td>
                         <td class="table-cell text-center">
-                            <a href="{{ route('laundry.orders.show', $order->id) }}" wire:navigate class="btn-icon" title="View Details">
-                                <span class="material-symbols-outlined">visibility</span>
-                            </a>
+                            <div class="flex items-center justify-center gap-1">
+                                <a href="{{ route('laundry.orders.show', $order->id) }}" wire:navigate class="btn-icon" title="View Details">
+                                    <span class="material-symbols-outlined text-sm">visibility</span>
+                                </a>
+                                <a href="{{ route('laundry.orders.edit', $order->id) }}" wire:navigate class="btn-icon text-amber-600 hover:bg-amber-50" title="Edit Order">
+                                    <span class="material-symbols-outlined text-sm">edit</span>
+                                </a>
+                                <button
+                                    type="button"
+                                    wire:click="deleteOrder({{ $order->id }})"
+                                    wire:confirm="Are you sure you want to delete order {{ $order->order_code }}?"
+                                    class="btn-icon text-red-600 hover:bg-red-50"
+                                    title="Delete Order"
+                                >
+                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @empty

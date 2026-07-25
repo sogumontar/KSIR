@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'laundry_service_id',
     'service_name_snapshot',
     'price_snapshot',
+    'qty',
     'treatment',
     'date_in',
     'date_estimated_done',
@@ -22,6 +23,7 @@ class LaundryOrderItem extends Model
     {
         return [
             'price_snapshot' => 'decimal:2',
+            'qty' => 'decimal:2',
             'date_in' => 'date',
             'date_estimated_done' => 'date',
             'is_free' => 'boolean',
@@ -43,21 +45,29 @@ class LaundryOrderItem extends Model
         return $this->belongsTo(LaundryService::class, 'laundry_service_id');
     }
 
+    public function getItemSubtotalAttribute(): float
+    {
+        $qty = (float) ($this->qty ?? 1);
+        return round((float) $this->price_snapshot * max(0.01, $qty), 2);
+    }
+
     public function getFinalPriceAttribute()
     {
         if ($this->is_free) {
             return 0;
         }
 
+        $itemSubtotal = $this->item_subtotal;
         $order = $this->laundryOrder;
+
         if ($order && (float) $order->subtotal > 0 && (float) $order->discount_amount > 0) {
             if ($order->promo && $order->promo->type === 'accumulative') {
-                return (float) $this->price_snapshot;
+                return $itemSubtotal;
             }
             $ratio = (float) $order->total_amount / (float) $order->subtotal;
-            return round((float) $this->price_snapshot * $ratio, 2);
+            return round($itemSubtotal * $ratio, 2);
         }
 
-        return (float) $this->price_snapshot;
+        return $itemSubtotal;
     }
 }

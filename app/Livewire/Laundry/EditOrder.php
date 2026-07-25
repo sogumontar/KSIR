@@ -8,7 +8,6 @@ use App\Models\LaundryPromo;
 use App\Models\LaundryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -16,16 +15,20 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.user')]
-#[Title('Create Order - Laundry - Inventory Pro')]
-class CreateOrder extends Component
+#[Title('Edit Order - Laundry - Inventory Pro')]
+class EditOrder extends Component
 {
     use WithFileUploads;
+
+    public LaundryOrder $order;
 
     // Customer
     public $customerName = '';
     public $customerPhone = '';
     public $photoBefore = null;
+    public $existingPhotoBefore = null;
     public $paymentStatus = 'unpaid';
+    public $orderStatus = 'pending';
 
     // Delivery
     public $deliveryType = 'pickup';
@@ -37,14 +40,40 @@ class CreateOrder extends Component
     // Promo
     public $selectedPromoId = null;
 
-    public function mount()
+    public function mount($id)
     {
-        $this->addItem();
+        $this->order = LaundryOrder::with('items')->where('user_id', Auth::id())->findOrFail($id);
+
+        $this->customerName = $this->order->customer_name;
+        $this->customerPhone = $this->order->customer_phone ?? '';
+        $this->existingPhotoBefore = $this->order->photo_before;
+        $this->paymentStatus = $this->order->payment_status;
+        $this->orderStatus = $this->order->status;
+        $this->deliveryType = $this->order->delivery_type ?? 'pickup';
+        $this->customerAddress = $this->order->customer_address ?? '';
+        $this->selectedPromoId = $this->order->laundry_promo_id;
+
+        $this->items = $this->order->items->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'service_id' => $item->laundry_service_id,
+                'treatment' => $item->treatment ?? '',
+                'date_in' => $item->date_in ? $item->date_in->format('Y-m-d') : now()->format('Y-m-d'),
+                'date_estimated_done' => $item->date_estimated_done ? $item->date_estimated_done->format('Y-m-d') : now()->addDays(2)->format('Y-m-d'),
+                'price' => (float) $item->price_snapshot,
+                'qty' => (float) ($item->qty ?? 1),
+            ];
+        })->toArray();
+
+        if (empty($this->items)) {
+            $this->addItem();
+        }
     }
 
     public function addItem()
     {
         $this->items[] = [
+            'id' => null,
             'service_id' => '',
             'treatment' => '',
             'date_in' => now()->format('Y-m-d'),
@@ -67,7 +96,6 @@ class CreateOrder extends Component
     {
         $parts = explode('.', $key);
         $field = end($parts);
-        // If key is '0.service_id' or 'items.0.service_id'
         $index = count($parts) >= 2 ? $parts[count($parts) - 2] : null;
 
         if ($field === 'service_id' && $value && $index !== null && isset($this->items[$index])) {
@@ -130,6 +158,7 @@ class CreateOrder extends Component
             'customerName' => 'required|string|max:255',
             'customerPhone' => 'nullable|string|max:50',
             'paymentStatus' => 'required|in:unpaid,paid',
+            'orderStatus' => 'required|in:pending,processing,ready,completed,cancelled',
             'deliveryType' => 'required|in:pickup,delivery',
             'customerAddress' => 'required_if:deliveryType,delivery|nullable|string|max:1000',
             'photoBefore' => 'nullable|image|max:5120',
@@ -143,13 +172,12 @@ class CreateOrder extends Component
             'items.*.service_id.required' => 'Please select a service for all items.',
         ]);
 
-        $order = DB::transaction(function () {
-            $photoPath = null;
+        DB::transaction(function () {
+            $photoPath = $this->existingPhotoBefore;
             if ($this->photoBefore) {
                 $photoPath = $this->photoBefore->store('laundry/orders/before', 'public');
             }
 
-            // Calculate totals inline to avoid stale computed property values
             $subtotal = collect($this->items)->sum(fn($item) => (float) ($item['price'] ?? 0) * max(0.01, (float) ($item['qty'] ?? 1)));
             $discountAmt = 0;
 
@@ -171,20 +199,25 @@ class CreateOrder extends Component
 
             $totalAmt = max(0, $subtotal - $discountAmt);
 
-            $order = LaundryOrder::create([
-                'user_id' => Auth::id(),
+            $this->order->update([
                 'customer_name' => $this->customerName,
                 'customer_phone' => $this->customerPhone,
                 'customer_address' => $this->customerAddress,
                 'delivery_type' => $this->deliveryType,
                 'payment_status' => $this->paymentStatus,
-                'status' => 'pending',
+                'status' => $this->orderStatus,
                 'subtotal' => $subtotal,
                 'discount_amount' => $discountAmt,
                 'total_amount' => $totalAmt,
                 'photo_before' => $photoPath,
                 'laundry_promo_id' => $this->selectedPromoId,
             ]);
+
+            // Sync items: delete existing items not in new list
+            $keptItemIds = collect($this->items)->pluck('id')->filter()->toArray();
+            LaundryOrderItem::where('laundry_order_id', $this->order->id)
+                ->whereNotIn('id', $keptItemIds)
+                ->delete();
 
             $freeIndices = [];
             if ($this->selectedPromoId) {
@@ -203,8 +236,8 @@ class CreateOrder extends Component
 
             foreach ($this->items as $index => $item) {
                 $service = LaundryService::find($item['service_id']);
-                LaundryOrderItem::create([
-                    'laundry_order_id' => $order->id,
+                $itemData = [
+                    'laundry_order_id' => $this->order->id,
                     'laundry_service_id' => $service->id,
                     'service_name_snapshot' => $service->name,
                     'price_snapshot' => $item['price'],
@@ -213,14 +246,18 @@ class CreateOrder extends Component
                     'date_in' => $item['date_in'],
                     'date_estimated_done' => $item['date_estimated_done'],
                     'is_free' => in_array($index, $freeIndices),
-                ]);
-            }
+                ];
 
-            return $order;
+                if (!empty($item['id'])) {
+                    LaundryOrderItem::where('id', $item['id'])->update($itemData);
+                } else {
+                    LaundryOrderItem::create($itemData);
+                }
+            }
         });
 
-        session()->flash('message', 'Order created successfully!');
-        $this->redirect(route('laundry.orders.show', $order->id), navigate: true);
+        session()->flash('message', 'Order ' . $this->order->order_code . ' updated successfully!');
+        return redirect()->route('laundry.orders.show', $this->order->id);
     }
 
     public function render()
@@ -228,7 +265,7 @@ class CreateOrder extends Component
         $services = LaundryService::where('user_id', Auth::id())->where('is_active', true)->get();
         $promos = LaundryPromo::where('user_id', Auth::id())->where('is_active', true)->get();
 
-        return view('livewire.laundry.create-order', [
+        return view('livewire.laundry.edit-order', [
             'services' => $services,
             'promos' => $promos,
         ]);
