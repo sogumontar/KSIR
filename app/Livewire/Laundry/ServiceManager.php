@@ -17,20 +17,26 @@ class ServiceManager extends Component
     public $editingId = null;
 
     public $name = '';
+    public $shortCode = '';
     public $price = '';
     public $description = '';
     public $isActive = true;
 
     protected $rules = [
-        'name' => 'required|string|max:255',
-        'price' => 'required|numeric|min:0',
+        'name'        => 'required|string|max:255',
+        'shortCode'   => 'nullable|string|max:20|regex:/^[A-Za-z0-9_-]*$/',
+        'price'       => 'required|numeric|min:0',
         'description' => 'nullable|string|max:1000',
-        'isActive' => 'boolean',
+        'isActive'    => 'boolean',
+    ];
+
+    protected $messages = [
+        'shortCode.regex' => 'Short code may only contain letters, numbers, hyphens, and underscores.',
     ];
 
     public function openAdd()
     {
-        $this->reset(['name', 'price', 'description', 'isActive', 'editingId']);
+        $this->reset(['name', 'shortCode', 'price', 'description', 'isActive', 'editingId']);
         $this->isActive = true;
         $this->showForm = true;
     }
@@ -40,6 +46,7 @@ class ServiceManager extends Component
         $service = LaundryService::where('user_id', Auth::id())->findOrFail($id);
         $this->editingId = $service->id;
         $this->name = $service->name;
+        $this->shortCode = $service->short_code ?? '';
         $this->price = $service->price;
         $this->description = $service->description;
         $this->isActive = $service->is_active;
@@ -54,22 +61,25 @@ class ServiceManager extends Component
     public function save()
     {
         $this->validate();
+        $code = strtoupper(trim($this->shortCode)) ?: null;
 
         if ($this->editingId) {
             $service = LaundryService::where('user_id', Auth::id())->findOrFail($this->editingId);
             $service->update([
-                'name' => $this->name,
-                'price' => $this->price,
+                'name'        => $this->name,
+                'short_code'  => $code,
+                'price'       => $this->price,
                 'description' => $this->description,
-                'is_active' => $this->isActive,
+                'is_active'   => $this->isActive,
             ]);
         } else {
             LaundryService::create([
-                'user_id' => Auth::id(),
-                'name' => $this->name,
-                'price' => $this->price,
+                'user_id'     => Auth::id(),
+                'name'        => $this->name,
+                'short_code'  => $code,
+                'price'       => $this->price,
                 'description' => $this->description,
-                'is_active' => $this->isActive,
+                'is_active'   => $this->isActive,
             ]);
         }
 

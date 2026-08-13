@@ -37,15 +37,29 @@ class LaundryOrder extends Model
         ];
     }
 
+    /** Temporary prefix set by CreateOrder before calling create() */
+    public string $orderCodePrefix = '';
+
     protected static function booted(): void
     {
         static::creating(function (LaundryOrder $order) {
-            $order->tracking_code = Str::uuid()->toString();
-            
-            do {
-                $code = 'LDR-' . strtoupper(Str::random(6));
-            } while (self::where('order_code', $code)->exists());
-            
+            $order->tracking_code = \Illuminate\Support\Str::uuid()->toString();
+
+            // Use the caller-supplied prefix or fall back to 'ORD'
+            $prefix = strtoupper(trim($order->orderCodePrefix)) ?: 'ORD';
+
+            // Count existing orders whose code starts with this prefix
+            $count = self::where('order_code', 'like', $prefix . '-%')->count();
+            $seq   = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+
+            // Ensure uniqueness in the rare case of a race
+            $code = $prefix . '-' . $seq;
+            while (self::where('order_code', $code)->exists()) {
+                $count++;
+                $seq  = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+                $code = $prefix . '-' . $seq;
+            }
+
             $order->order_code = $code;
         });
     }

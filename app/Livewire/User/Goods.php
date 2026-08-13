@@ -131,8 +131,6 @@ class Goods extends Component
 
     public function saveRecord()
     {
-        $requiresProof = in_array($this->status, ['delivered', 'loan']);
-
         $rules = [
             'goodId' => 'required|exists:goods,id',
             'qty' => 'required|integer|min:1',
@@ -142,14 +140,8 @@ class Goods extends Component
             'salesType' => 'required|in:offline,online',
             'salesCode' => 'required_if:salesType,online|nullable|string|max:255',
             'transactionDate' => 'required|date',
-            'proofFile' => $requiresProof
-                ? 'required|file|mimes:pdf,jpg,jpeg,png|max:10240'
-                : 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'proofFile' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
-
-        if ($requiresProof && !$this->proofFile) {
-            $this->addError('proofFile', 'Proof of delivery is required when status is delivered or loan.');
-        }
 
         $this->validate($rules);
 
@@ -222,8 +214,6 @@ class Goods extends Component
 
     public function updateRecord()
     {
-        $requiresProof = in_array($this->editStatus, ['delivered', 'loan']);
-
         $rules = [
             'editQty' => 'required|integer|min:1',
             'editPrice' => 'required|numeric|min:0',

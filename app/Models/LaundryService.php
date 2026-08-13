@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'name', 'description', 'price', 'is_active'])]
+#[Fillable(['user_id', 'name', 'short_code', 'description', 'price', 'is_active'])]
 class LaundryService extends Model
 {
     protected function casts(): array

@@ -34,16 +34,23 @@
     {{-- ===== HEADER CARD ===== --}}
     <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200/60">
 
-        {{-- Hero Header with gradient --}}
+        {{-- Hero Header --}}
         <div class="relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-[#091426] via-[#0e2240] to-[#006c49]"></div>
-            <div class="absolute inset-0 opacity-10">
-                <div class="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-white/20 blur-3xl"></div>
-                <div class="absolute bottom-[-20%] left-[-10%] w-48 h-48 rounded-full bg-emerald-400/30 blur-3xl"></div>
-            </div>
+            {{-- Background: image or gradient --}}
+            @if($merchantSetting?->header_bg_image)
+                <div class="absolute inset-0">
+                    <img src="{{ storage_url($merchantSetting->header_bg_image) }}" alt="BG" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-b from-black/60 to-black/80"></div>
+                </div>
+            @else
+                <div class="absolute inset-0 bg-gradient-to-br from-[#091426] via-[#0e2240] to-[#006c49]">
+                    <div class="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+                    <div class="absolute bottom-[-20%] left-[-10%] w-48 h-48 rounded-full bg-emerald-400/20 blur-3xl"></div>
+                </div>
+            @endif
 
-            <div class="relative z-10 px-6 pt-8 pb-6 text-center text-white">
-                {{-- Merchant branding --}}
+            <div class="relative z-10 px-6 pt-8 pb-8 text-center text-white">
+                {{-- Store branding --}}
                 <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white mb-4 overflow-hidden shadow-md border border-white/20">
                     @if($order->user->profile_photo)
                         <img src="{{ storage_url($order->user->profile_photo) }}" alt="Logo" class="w-full h-full object-cover">
@@ -51,9 +58,15 @@
                         <span class="material-symbols-outlined text-4xl text-slate-800">local_laundry_service</span>
                     @endif
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight mb-1">{{ $order->user->store_name ?? $order->user->name ?? 'Laundry' }}</h1>
-                @if($order->user->business_address)
-                    <p class="text-white/60 text-xs leading-relaxed max-w-xs mx-auto">{{ $order->user->business_address }}</p>
+
+                {{-- Store name from settings (fallback to user name) --}}
+                <h1 class="text-2xl font-bold tracking-tight mb-1">
+                    {{ $merchantSetting?->store_name ?: ($order->user->store_name ?? $order->user->name ?? 'Laundry') }}
+                </h1>
+                @if($merchantSetting?->store_address)
+                    <p class="text-white/70 text-xs leading-relaxed max-w-xs mx-auto mt-1">{{ $merchantSetting->store_address }}</p>
+                @elseif($order->user->business_address)
+                    <p class="text-white/70 text-xs leading-relaxed max-w-xs mx-auto mt-1">{{ $order->user->business_address }}</p>
                 @endif
 
                 {{-- Store Status Badge --}}
@@ -63,19 +76,20 @@
                 </div>
             </div>
 
-            {{-- Order code badge --}}
-            <div class="relative z-10 flex justify-center -mb-5 px-6">
-                <div class="bg-white rounded-2xl shadow-lg px-6 py-3 border border-slate-100 flex items-center gap-3">
-                    <div>
-                        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">No. Nota</p>
-                        <p class="text-lg font-extrabold text-slate-900 tracking-tight leading-tight">{{ $order->order_code }}</p>
-                    </div>
-                    <div class="w-px h-10 bg-slate-200"></div>
-                    <div class="text-center">
-                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold {{ $order->payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200' }}">
-                            <span class="material-symbols-outlined text-sm">{{ $order->payment_status === 'paid' ? 'check_circle' : 'pending' }}</span>
-                            {{ $order->payment_status === 'paid' ? 'LUNAS' : 'BELUM LUNAS' }}
-                        </span>
+            {{-- Order code + payment badge — wider pill, stacked so it never overflows --}}
+            <div class="relative z-10 flex justify-center -mb-6 px-4">
+                <div class="bg-white rounded-2xl shadow-lg border border-slate-100 w-full max-w-xs">
+                    <div class="flex items-stretch divide-x divide-slate-100">
+                        <div class="flex-1 px-4 py-3">
+                            <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">No. Nota</p>
+                            <p class="text-base font-extrabold text-slate-900 tracking-tight leading-tight break-all">{{ $order->order_code }}</p>
+                        </div>
+                        <div class="flex items-center justify-center px-4 py-3">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold {{ $order->payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200' }}">
+                                <span class="material-symbols-outlined text-sm">{{ $order->payment_status === 'paid' ? 'check_circle' : 'pending' }}</span>
+                                {{ $order->payment_status === 'paid' ? 'LUNAS' : 'BELUM LUNAS' }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -277,11 +291,13 @@
             @endif
 
             {{-- ===== QR CODE PAYMENT ===== --}}
-            @if($order->payment_status === 'unpaid' && $merchantSetting?->qr_code_path)
+            @if($merchantSetting?->qr_code_path)
                 <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100 text-center">
                     <div class="flex items-center justify-center gap-2 mb-3">
                         <span class="material-symbols-outlined text-blue-500 text-xl">qr_code_2</span>
-                        <h3 class="font-bold text-slate-800 text-sm">Scan untuk Pembayaran</h3>
+                        <h3 class="font-bold text-slate-800 text-sm">
+                            {{ $order->payment_status === 'paid' ? 'QR Code Pembayaran' : 'Scan untuk Pembayaran' }}
+                        </h3>
                     </div>
                     <div class="inline-block bg-white p-3 rounded-2xl shadow-md border border-slate-100">
                         <img
@@ -310,10 +326,11 @@
         </div>
 
         {{-- ===== FOOTER ===== --}}
-        <div class="bg-slate-50 px-6 py-4 text-center border-t border-slate-100">
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 text-center">
             <p class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">Powered by Inventory Pro</p>
         </div>
 
     </div>
 
 </div>
+

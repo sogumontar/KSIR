@@ -34,7 +34,12 @@
             </div>
             <p class="text-slate-500 text-sm mb-4 flex-grow">{{ $service->description ?? 'No description provided.' }}</p>
             <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
-                <span class="font-bold text-lg text-secondary">Rp{{ number_format($service->price, 0) }}</span>
+                <div>
+                    <span class="font-bold text-lg text-secondary">Rp{{ number_format($service->price, 0) }}</span>
+                    @if($service->short_code)
+                    <span class="ml-2 text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{{ $service->short_code }}</span>
+                    @endif
+                </div>
                 <span class="px-2 py-1 rounded-full text-xs font-medium {{ $service->is_active ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600' }}">
                     {{ $service->is_active ? 'Active' : 'Inactive' }}
                 </span>
@@ -63,6 +68,12 @@
                     <label class="form-label">Service Name</label>
                     <input wire:model="name" type="text" class="form-input w-full">
                     @error('name') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label class="form-label">Order Code Prefix <span class="text-slate-400 text-xs font-normal">(optional – e.g. SHOES, SHIRT, BAG)</span></label>
+                    <input wire:model="shortCode" type="text" class="form-input w-full font-mono uppercase" placeholder="e.g. SHOES" maxlength="20">
+                    <p class="text-xs text-slate-400 mt-1">Used to generate order codes like <span class="font-mono">SHOES-0001</span>. Leave blank to use <span class="font-mono">ORD</span>.</p>
+                    @error('shortCode') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
                 </div>
                 <div>
                     <label class="form-label">Price (Rp)</label>

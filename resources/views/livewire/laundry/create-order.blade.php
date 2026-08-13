@@ -19,11 +19,46 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
+                    {{-- Customer Name with Autocomplete --}}
+                    <div x-data="{ open: false }" x-on:click.outside="open = false" class="relative">
                         <label class="form-label">Customer Name <span class="text-error">*</span></label>
-                        <input wire:model="customerName" type="text" class="form-input w-full" placeholder="e.g. John Doe">
+                        <input
+                            wire:model.live.debounce.250ms="customerName"
+                            x-on:focus="open = true"
+                            type="text"
+                            class="form-input w-full"
+                            placeholder="e.g. John Doe"
+                            autocomplete="off"
+                        >
                         @error('customerName') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+
+                        {{-- Suggestion Dropdown --}}
+                        @if(count($suggestions) > 0)
+                        <div
+                            x-show="open"
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            class="absolute z-30 top-full left-0 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-52 overflow-y-auto"
+                        >
+                            @foreach($suggestions as $s)
+                            <button
+                                type="button"
+                                @mousedown.prevent
+                                wire:click="selectCustomer('{{ addslashes($s['name']) }}', '{{ addslashes($s['phone']) }}')"
+                                x-on:click="open = false"
+                                class="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 flex items-center justify-between gap-3 transition-colors"
+                            >
+                                <span class="font-medium text-slate-900 text-sm">{{ $s['name'] }}</span>
+                                @if($s['phone'])
+                                <span class="text-xs text-slate-400 font-mono shrink-0">{{ $s['phone'] }}</span>
+                                @endif
+                            </button>
+                            @endforeach
+                        </div>
+                        @endif
                     </div>
+
                     <div>
                         <label class="form-label">WhatsApp Number</label>
                         <input wire:model="customerPhone" type="text" class="form-input w-full" placeholder="e.g. 08123456789">

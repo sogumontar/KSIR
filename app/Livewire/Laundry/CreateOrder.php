@@ -27,6 +27,9 @@ class CreateOrder extends Component
     public $photoBefore = null;
     public $paymentStatus = 'unpaid';
 
+    // Autocomplete suggestions
+    public array $suggestions = [];
+
     // Delivery
     public $deliveryType = 'pickup';
     public $customerAddress = '';
@@ -44,14 +47,41 @@ class CreateOrder extends Component
 
     public function addItem()
     {
-        $this->items[] = [
+        // Prepend new item to the TOP of the list
+        array_unshift($this->items, [
             'service_id' => '',
             'treatment' => '',
             'date_in' => now()->format('Y-m-d'),
             'date_estimated_done' => now()->addDays(2)->format('Y-m-d'),
             'price' => 0,
             'qty' => 1,
-        ];
+        ]);
+        $this->items = array_values($this->items);
+    }
+
+    public function updatedCustomerName($value)
+    {
+        if (strlen(trim($value)) >= 1) {
+            $this->suggestions = LaundryOrder::where('user_id', Auth::id())
+                ->where('customer_name', 'like', '%' . trim($value) . '%')
+                ->select('customer_name', 'customer_phone')
+                ->orderBy('customer_name')
+                ->limit(8)
+                ->get()
+                ->unique(fn($r) => $r->customer_name . '|' . $r->customer_phone)
+                ->values()
+                ->map(fn($r) => ['name' => $r->customer_name, 'phone' => $r->customer_phone ?? ''])
+                ->toArray();
+        } else {
+            $this->suggestions = [];
+        }
+    }
+
+    public function selectCustomer(string $name, string $phone): void
+    {
+        $this->customerName = $name;
+        $this->customerPhone = $phone;
+        $this->suggestions = [];
     }
 
     public function removeItem($index)
@@ -171,20 +201,28 @@ class CreateOrder extends Component
 
             $totalAmt = max(0, $subtotal - $discountAmt);
 
-            $order = LaundryOrder::create([
-                'user_id' => Auth::id(),
-                'customer_name' => $this->customerName,
-                'customer_phone' => $this->customerPhone,
+            // Derive order_code prefix from the first item's service short_code
+            $firstServiceId = collect($this->items)->first()['service_id'] ?? null;
+            $firstService   = $firstServiceId ? LaundryService::find($firstServiceId) : null;
+            $codePrefix     = $firstService?->short_code ? strtoupper(trim($firstService->short_code)) : 'ORD';
+
+            $orderModel = new LaundryOrder();
+            $orderModel->orderCodePrefix = $codePrefix;
+            $order = $orderModel->fill([
+                'user_id'          => Auth::id(),
+                'customer_name'    => $this->customerName,
+                'customer_phone'   => $this->customerPhone,
                 'customer_address' => $this->customerAddress,
-                'delivery_type' => $this->deliveryType,
-                'payment_status' => $this->paymentStatus,
-                'status' => 'pending',
-                'subtotal' => $subtotal,
-                'discount_amount' => $discountAmt,
-                'total_amount' => $totalAmt,
-                'photo_before' => $photoPath,
+                'delivery_type'    => $this->deliveryType,
+                'payment_status'   => $this->paymentStatus,
+                'status'           => 'pending',
+                'subtotal'         => $subtotal,
+                'discount_amount'  => $discountAmt,
+                'total_amount'     => $totalAmt,
+                'photo_before'     => $photoPath,
                 'laundry_promo_id' => $this->selectedPromoId,
             ]);
+            $order->save();
 
             $freeIndices = [];
             if ($this->selectedPromoId) {

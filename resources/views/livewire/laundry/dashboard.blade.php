@@ -100,9 +100,9 @@
         this.txChart = new Chart(c, {
             type: 'bar',
             data: {
-                labels: @js($chartLabels),
+                labels: @js($txCountLabels),
                 datasets: [{
-                    label: 'Orders (Date In)',
+                    label: 'Services (Date In)',
                     data: @js($txCountValues),
                     backgroundColor: grad,
                     borderColor: '#3B82F6',
@@ -121,7 +121,7 @@
                         cornerRadius: 8,
                         displayColors: false,
                         callbacks: {
-                            label: ctx => ctx.parsed.y + ' orders'
+                            label: ctx => ctx.parsed.y + ' services'
                         }
                     }
                 },
@@ -348,11 +348,12 @@
                     <tr>
                         @php
                             $cols = [
-                                'order_code'   => 'Order Code',
-                                'customer_name'=> 'Customer',
-                                'created_at'   => 'Date',
-                                'total_amount' => 'Total',
-                                'status'       => 'Status',
+                                'order_code'     => 'Order Code',
+                                'customer_name'  => 'Customer',
+                                'date_in'        => 'Date In',
+                                'total_amount'   => 'Total',
+                                'status'         => 'Status',
+                                'payment_status' => 'Payment',
                             ];
                         @endphp
                         @foreach($cols as $col => $label)
@@ -365,7 +366,7 @@
                             </div>
                         </th>
                         @endforeach
-                        <th class="table-header font-label-lg text-center">Payment</th>
+                        <th class="table-header font-label-lg">Due Date</th>
                         <th class="table-header font-label-lg text-center">Actions</th>
                     </tr>
                 </thead>
@@ -374,7 +375,9 @@
                     <tr class="border-b border-slate-200 hover:bg-slate-50 transition-colors">
                         <td class="table-cell font-medium">{{ $order->order_code }}</td>
                         <td class="table-cell">{{ $order->customer_name }}</td>
-                        <td class="table-cell">{{ $order->created_at->format('M d, Y') }}</td>
+                        <td class="table-cell">
+                            {{ $order->items_min_date_in ? \Carbon\Carbon::parse($order->items_min_date_in)->format('M d, Y') : '-' }}
+                        </td>
                         <td class="table-cell text-right font-bold">Rp{{ number_format($order->total_amount, 0) }}</td>
                         <td class="table-cell text-center">
                             @php
@@ -394,6 +397,16 @@
                             <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium {{ $order->payment_status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                 {{ ucfirst($order->payment_status) }}
                             </span>
+                        </td>
+                        <td class="table-cell">
+                            @if($order->items_max_date_estimated_done)
+                                @php $due = \Carbon\Carbon::parse($order->items_max_date_estimated_done); @endphp
+                                <span class="text-xs {{ $due->isPast() && !in_array($order->status, ['completed','cancelled']) ? 'text-red-600 font-bold' : 'text-slate-600' }}">
+                                    {{ $due->format('M d, Y') }}
+                                </span>
+                            @else
+                                <span class="text-xs text-slate-400">-</span>
+                            @endif
                         </td>
                         <td class="table-cell text-center">
                             <div class="flex items-center justify-center gap-1">
@@ -417,7 +430,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="p-8 text-center text-slate-500">No orders found.</td>
+                        <td colspan="8" class="p-8 text-center text-slate-500">No orders found.</td>
                     </tr>
                     @endforelse
                 </tbody>

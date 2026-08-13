@@ -378,8 +378,7 @@
                 <!-- Proof of Delivery (Always Visible) -->
                 <div class="col-span-1 md:col-span-2 mt-4 pt-6 border-t border-slate-200">
                     <label class="form-label">
-                        Proof of Delivery / Manifest
-                        <span x-show="$wire.status === 'delivered' || $wire.status === 'loan'" class="text-error">*</span>
+                        Proof of Delivery / Manifest (Optional)
                     </label>
                     @if($proofFile)
                         <div class="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg mb-3">
@@ -396,7 +395,6 @@
                         <span class="material-symbols-outlined text-4xl text-slate-400 mb-2">upload_file</span>
                         <p class="font-label-md text-slate-700 mb-1">Click to upload or drag and drop</p>
                         <p class="text-sm text-slate-500">PDF, JPG, or PNG (max. 10MB)</p>
-                        <p x-show="$wire.status === 'delivered' || $wire.status === 'loan'" class="text-xs text-red-500 mt-1">Required for delivered and loan status</p>
                         <input accept=".pdf,.jpg,.jpeg,.png" class="hidden" type="file" wire:model="proofFile">
                     </div>
                     @error('proofFile') <span class="text-error text-sm block mt-1">{{ $message }}</span> @enderror

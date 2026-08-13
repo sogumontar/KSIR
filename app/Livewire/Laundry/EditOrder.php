@@ -72,7 +72,8 @@ class EditOrder extends Component
 
     public function addItem()
     {
-        $this->items[] = [
+        // Prepend new item to the TOP of the list
+        array_unshift($this->items, [
             'id' => null,
             'service_id' => '',
             'treatment' => '',
@@ -80,7 +81,8 @@ class EditOrder extends Component
             'date_estimated_done' => now()->addDays(2)->format('Y-m-d'),
             'price' => 0,
             'qty' => 1,
-        ];
+        ]);
+        $this->items = array_values($this->items);
     }
 
     public function removeItem($index)

@@ -24,18 +24,19 @@ class Dashboard extends Component
     #[Url]
     public string $statusFilter = '';
 
-    public string $sortColumn = 'created_at';
+    public string $sortColumn = 'date_in';
     public string $sortDirection = 'desc';
     public string $chartPeriod = 'week';
     public string $storeStatus = 'open';
 
     /** Allowed sortable columns mapped to actual DB columns */
     private const SORTABLE = [
-        'order_code'    => 'order_code',
-        'customer_name' => 'customer_name',
-        'created_at'    => 'created_at',
-        'total_amount'  => 'total_amount',
-        'status'        => 'status',
+        'order_code'     => 'order_code',
+        'customer_name'  => 'customer_name',
+        'date_in'        => 'items_min_date_in',
+        'total_amount'   => 'total_amount',
+        'status'         => 'status',
+        'payment_status' => 'payment_status',
     ];
 
     public function mount()
@@ -101,10 +102,12 @@ class Dashboard extends Component
         $tomorrow = Carbon::tomorrow();
 
         // Resolve the actual DB column from the whitelist (fallback to created_at)
-        $sortCol = self::SORTABLE[$this->sortColumn] ?? 'created_at';
+        $sortCol = self::SORTABLE[$this->sortColumn] ?? 'items_min_date_in';
 
-        // Orders table query
-        $query = LaundryOrder::where('user_id', $user->id);
+        // Orders table query – always eager-load min date_in and max due date per order
+        $query = LaundryOrder::where('user_id', $user->id)
+            ->withMin('items', 'date_in')
+            ->withMax('items', 'date_estimated_done');
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -154,7 +157,19 @@ class Dashboard extends Component
         $totalValues    = $trendData->pluck('total_amount')->map(fn($v) => (float) $v)->toArray();
         $paidValues     = $trendData->pluck('paid_amount')->map(fn($v) => (float) $v)->toArray();
         $unpaidValues   = $trendData->pluck('unpaid_amount')->map(fn($v) => (float) $v)->toArray();
-        $txCountValues  = $trendData->pluck('tx_count')->map(fn($v) => (int) $v)->toArray();
+
+        // ─── Services Count per Date In (count items/services, not orders) ────────
+        $itemCountData = DB::table('laundry_order_items')
+            ->join('laundry_orders', 'laundry_order_items.laundry_order_id', '=', 'laundry_orders.id')
+            ->where('laundry_orders.user_id', $user->id)
+            ->whereDate('laundry_order_items.date_in', '>=', Carbon::now()->subDays(13))
+            ->selectRaw('laundry_order_items.date_in as date, SUM(COALESCE(laundry_order_items.qty, 1)) as item_count')
+            ->groupBy('laundry_order_items.date_in')
+            ->orderBy('laundry_order_items.date_in')
+            ->get();
+
+        $txCountLabels = $itemCountData->pluck('date')->map(fn($d) => Carbon::parse($d)->format('M d'))->toArray();
+        $txCountValues = $itemCountData->pluck('item_count')->map(fn($v) => (int) $v)->toArray();
 
         // ─── Orders due today & tomorrow ─────────────────────────────────────────
         $dueSoonOrders = LaundryOrder::where('user_id', $user->id)
@@ -190,11 +205,13 @@ class Dashboard extends Component
             'unpaidAmountAllTime'    => $unpaidAmountAllTime,
             'totalUnpaidOutstanding' => $totalUnpaidOutstanding,
             'activeOrdersCount'      => $activeOrdersCount,
-            // Trends based on Date In
+            // Revenue trend (by order Date In)
             'chartLabels'            => $chartLabels,
             'totalValues'            => $totalValues,
             'paidValues'             => $paidValues,
             'unpaidValues'           => $unpaidValues,
+            // Services/Items count (by item Date In)
+            'txCountLabels'          => $txCountLabels,
             'txCountValues'          => $txCountValues,
             // Due soon
             'dueSoonOrders'          => $dueSoonOrders,
