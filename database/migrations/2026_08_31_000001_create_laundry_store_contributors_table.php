@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('accepted_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['owner_user_id', 'contributor_user_id']);
+            $table->unique(['owner_user_id', 'contributor_user_id'], 'lsc_owner_contributor_unique');
         });
     }
 
