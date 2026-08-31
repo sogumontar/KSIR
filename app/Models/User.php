@@ -102,6 +102,19 @@ class User extends Authenticatable
         return $this->hasOne(LaundryMerchantSetting::class);
     }
 
+    /** Stores this user contributes to (as contributor) */
+    public function laundryContributions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LaundryStoreContributor::class, 'contributor_user_id')
+                    ->where('status', 'accepted');
+    }
+
+    /** Contributors on this user's store (as owner) */
+    public function laundryContributors(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LaundryStoreContributor::class, 'owner_user_id');
+    }
+
     public function getAvatarAttribute(): ?string
     {
         return $this->photo_path

@@ -6,6 +6,8 @@ use App\Models\LaundryOrder;
 use App\Models\LaundryOrderItem;
 use App\Models\LaundryPromo;
 use App\Models\LaundryService;
+use App\Models\LaundryStoreContributor;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -22,16 +24,17 @@ class EditOrder extends Component
 
     public LaundryOrder $order;
 
-    // Customer
-    public $customerName = '';
-    public $customerPhone = '';
-    public $photoBefore = null;
+    // Customer info
+    public $customerName      = '';
+    public $customerPhone     = '';
+    public $photoBefore       = null;
     public $existingPhotoBefore = null;
-    public $paymentStatus = 'unpaid';
-    public $orderStatus = 'pending';
+    public $paymentStatus     = 'unpaid';
+    public $orderStatus       = 'pending';
+    public $assigneeId        = null;
 
     // Delivery
-    public $deliveryType = 'pickup';
+    public $deliveryType    = 'pickup';
     public $customerAddress = '';
 
     // Cart
@@ -40,28 +43,49 @@ class EditOrder extends Component
     // Promo
     public $selectedPromoId = null;
 
+    /** Whether the logged-in user is the store owner */
+    public bool $isOwner = false;
+
     public function mount($id)
     {
-        $this->order = LaundryOrder::with('items')->where('user_id', Auth::id())->findOrFail($id);
+        // Load order — accessible by the store owner OR accepted contributor
+        $order = LaundryOrder::with('items')->findOrFail($id);
 
-        $this->customerName = $this->order->customer_name;
-        $this->customerPhone = $this->order->customer_phone ?? '';
-        $this->existingPhotoBefore = $this->order->photo_before;
-        $this->paymentStatus = $this->order->payment_status;
-        $this->orderStatus = $this->order->status;
-        $this->deliveryType = $this->order->delivery_type ?? 'pickup';
-        $this->customerAddress = $this->order->customer_address ?? '';
-        $this->selectedPromoId = $this->order->laundry_promo_id;
+        $userId = Auth::id();
+        $this->isOwner = ($order->user_id === $userId);
 
-        $this->items = $this->order->items->map(function ($item) {
+        if (!$this->isOwner) {
+            $isContributor = LaundryStoreContributor::where('owner_user_id', $order->user_id)
+                ->where('contributor_user_id', $userId)
+                ->where('status', 'accepted')
+                ->exists();
+
+            if (!$isContributor) {
+                abort(403, 'Access denied.');
+            }
+        }
+
+        $this->order = $order;
+
+        $this->customerName       = $order->customer_name;
+        $this->customerPhone      = $order->customer_phone ?? '';
+        $this->existingPhotoBefore = $order->photo_before;
+        $this->paymentStatus      = $order->payment_status;
+        $this->orderStatus        = $order->status;
+        $this->deliveryType       = $order->delivery_type ?? 'pickup';
+        $this->customerAddress    = $order->customer_address ?? '';
+        $this->selectedPromoId    = $order->laundry_promo_id;
+        $this->assigneeId         = $order->assignee_id;
+
+        $this->items = $order->items->map(function ($item) {
             return [
-                'id' => $item->id,
-                'service_id' => $item->laundry_service_id,
-                'treatment' => $item->treatment ?? '',
-                'date_in' => $item->date_in ? $item->date_in->format('Y-m-d') : now()->format('Y-m-d'),
+                'id'                  => $item->id,
+                'service_id'          => $item->laundry_service_id,
+                'treatment'           => $item->treatment ?? '',
+                'date_in'             => $item->date_in ? $item->date_in->format('Y-m-d') : now()->format('Y-m-d'),
                 'date_estimated_done' => $item->date_estimated_done ? $item->date_estimated_done->format('Y-m-d') : now()->addDays(2)->format('Y-m-d'),
-                'price' => (float) $item->price_snapshot,
-                'qty' => (float) ($item->qty ?? 1),
+                'price'               => (float) $item->price_snapshot,
+                'qty'                 => (float) ($item->qty ?? 1),
             ];
         })->toArray();
 
@@ -72,15 +96,14 @@ class EditOrder extends Component
 
     public function addItem()
     {
-        // Prepend new item to the TOP of the list
         array_unshift($this->items, [
-            'id' => null,
-            'service_id' => '',
-            'treatment' => '',
-            'date_in' => now()->format('Y-m-d'),
+            'id'                  => null,
+            'service_id'          => '',
+            'treatment'           => '',
+            'date_in'             => now()->format('Y-m-d'),
             'date_estimated_done' => now()->addDays(2)->format('Y-m-d'),
-            'price' => 0,
-            'qty' => 1,
+            'price'               => 0,
+            'qty'                 => 1,
         ]);
         $this->items = array_values($this->items);
     }
@@ -112,23 +135,17 @@ class EditOrder extends Component
     public function subtotal()
     {
         return collect($this->items)->sum(function ($item) {
-            $price = (float) ($item['price'] ?? 0);
-            $qty = (float) ($item['qty'] ?? 1);
-            return $price * max(0.01, $qty);
+            return (float) ($item['price'] ?? 0) * max(0.01, (float) ($item['qty'] ?? 1));
         });
     }
 
     #[Computed]
     public function discountAmount()
     {
-        if (!$this->selectedPromoId) {
-            return 0;
-        }
+        if (!$this->selectedPromoId) return 0;
 
         $promo = LaundryPromo::find($this->selectedPromoId);
-        if (!$promo) {
-            return 0;
-        }
+        if (!$promo) return 0;
 
         if ($promo->type === 'percentage') {
             return $this->subtotal * (($promo->discount_percent ?? 0) / 100);
@@ -136,8 +153,8 @@ class EditOrder extends Component
             $count = count($this->items);
             if (($promo->buy_quantity ?? 0) > 0) {
                 $freeCount = intdiv($count, $promo->buy_quantity) * ($promo->free_quantity ?? 0);
-                $prices = collect($this->items)->map(fn($item) => (float)($item['price'] ?? 0) * (float)($item['qty'] ?? 1))->sort()->values()->all();
-                $discount = 0;
+                $prices    = collect($this->items)->map(fn($item) => (float)($item['price'] ?? 0) * (float)($item['qty'] ?? 1))->sort()->values()->all();
+                $discount  = 0;
                 for ($i = 0; $i < $freeCount && $i < count($prices); $i++) {
                     $discount += (float) $prices[$i];
                 }
@@ -154,21 +171,46 @@ class EditOrder extends Component
         return max(0, $this->subtotal - $this->discountAmount);
     }
 
+    /** Quick status-only update for contributors */
+    public function quickUpdateStatus(): void
+    {
+        $this->validate(['orderStatus' => 'required|in:pending,processing,in_progress,ready,completed,cancelled']);
+
+        $this->order->update(['status' => $this->orderStatus]);
+        session()->flash('message', 'Status order berhasil diperbarui.');
+    }
+
+    /** Quick payment status update for contributors */
+    public function quickUpdatePayment(): void
+    {
+        $this->validate(['paymentStatus' => 'required|in:unpaid,paid']);
+
+        $this->order->update(['payment_status' => $this->paymentStatus]);
+        session()->flash('message', 'Status pembayaran berhasil diperbarui.');
+    }
+
     public function submit()
     {
+        // Contributors can only do quick updates via the buttons above
+        if (!$this->isOwner) {
+            session()->flash('error', 'Hanya owner yang dapat mengubah semua detail order.');
+            return;
+        }
+
         $this->validate([
-            'customerName' => 'required|string|max:255',
-            'customerPhone' => 'nullable|string|max:50',
-            'paymentStatus' => 'required|in:unpaid,paid',
-            'orderStatus' => 'required|in:pending,processing,ready,completed,cancelled',
-            'deliveryType' => 'required|in:pickup,delivery',
+            'customerName'    => 'required|string|max:255',
+            'customerPhone'   => 'nullable|string|max:50',
+            'paymentStatus'   => 'required|in:unpaid,paid',
+            'orderStatus'     => 'required|in:pending,processing,in_progress,ready,completed,cancelled',
+            'deliveryType'    => 'required|in:pickup,delivery',
             'customerAddress' => 'required_if:deliveryType,delivery|nullable|string|max:1000',
-            'photoBefore' => 'nullable|image|max:5120',
-            'items' => 'required|array|min:1',
-            'items.*.service_id' => 'required|exists:laundry_services,id',
-            'items.*.price' => 'required|numeric|min:0',
-            'items.*.qty' => 'required|numeric|min:0.01',
-            'items.*.date_in' => 'required|date',
+            'photoBefore'     => 'nullable|image|max:5120',
+            'assigneeId'      => 'nullable|exists:users,id',
+            'items'           => 'required|array|min:1',
+            'items.*.service_id'          => 'required|exists:laundry_services,id',
+            'items.*.price'               => 'required|numeric|min:0',
+            'items.*.qty'                 => 'required|numeric|min:0.01',
+            'items.*.date_in'             => 'required|date',
             'items.*.date_estimated_done' => 'required|date|after_or_equal:items.*.date_in',
         ], [
             'items.*.service_id.required' => 'Please select a service for all items.',
@@ -180,7 +222,7 @@ class EditOrder extends Component
                 $photoPath = $this->photoBefore->store('laundry/orders/before', 'public');
             }
 
-            $subtotal = collect($this->items)->sum(fn($item) => (float) ($item['price'] ?? 0) * max(0.01, (float) ($item['qty'] ?? 1)));
+            $subtotal    = collect($this->items)->sum(fn($item) => (float) ($item['price'] ?? 0) * max(0.01, (float) ($item['qty'] ?? 1)));
             $discountAmt = 0;
 
             if ($this->selectedPromoId) {
@@ -189,9 +231,9 @@ class EditOrder extends Component
                     if ($promo->type === 'percentage' && $promo->discount_percent > 0) {
                         $discountAmt = $subtotal * ($promo->discount_percent / 100);
                     } elseif ($promo->type === 'accumulative' && $promo->buy_quantity > 0) {
-                        $count = count($this->items);
+                        $count     = count($this->items);
                         $freeCount = intdiv($count, $promo->buy_quantity) * ($promo->free_quantity ?? 0);
-                        $prices = collect($this->items)->map(fn($item) => (float) ($item['price'] ?? 0) * max(0.01, (float) ($item['qty'] ?? 1)))->sort()->values()->all();
+                        $prices    = collect($this->items)->map(fn($item) => (float) ($item['price'] ?? 0) * max(0.01, (float) ($item['qty'] ?? 1)))->sort()->values()->all();
                         for ($i = 0; $i < $freeCount && $i < count($prices); $i++) {
                             $discountAmt += $prices[$i];
                         }
@@ -202,20 +244,20 @@ class EditOrder extends Component
             $totalAmt = max(0, $subtotal - $discountAmt);
 
             $this->order->update([
-                'customer_name' => $this->customerName,
-                'customer_phone' => $this->customerPhone,
+                'customer_name'    => $this->customerName,
+                'customer_phone'   => $this->customerPhone,
                 'customer_address' => $this->customerAddress,
-                'delivery_type' => $this->deliveryType,
-                'payment_status' => $this->paymentStatus,
-                'status' => $this->orderStatus,
-                'subtotal' => $subtotal,
-                'discount_amount' => $discountAmt,
-                'total_amount' => $totalAmt,
-                'photo_before' => $photoPath,
+                'delivery_type'    => $this->deliveryType,
+                'payment_status'   => $this->paymentStatus,
+                'status'           => $this->orderStatus,
+                'assignee_id'      => $this->assigneeId ?: null,
+                'subtotal'         => $subtotal,
+                'discount_amount'  => $discountAmt,
+                'total_amount'     => $totalAmt,
+                'photo_before'     => $photoPath,
                 'laundry_promo_id' => $this->selectedPromoId,
             ]);
 
-            // Sync items: delete existing items not in new list
             $keptItemIds = collect($this->items)->pluck('id')->filter()->toArray();
             LaundryOrderItem::where('laundry_order_id', $this->order->id)
                 ->whereNotIn('id', $keptItemIds)
@@ -225,7 +267,7 @@ class EditOrder extends Component
             if ($this->selectedPromoId) {
                 $promo = LaundryPromo::find($this->selectedPromoId);
                 if ($promo && $promo->type === 'accumulative' && ($promo->buy_quantity ?? 0) > 0) {
-                    $count = count($this->items);
+                    $count     = count($this->items);
                     $freeCount = intdiv($count, $promo->buy_quantity) * ($promo->free_quantity ?? 0);
                     $freeIndices = collect($this->items)
                         ->map(fn($item, $idx) => ['index' => $idx, 'price' => (float)($item['price'] ?? 0) * max(0.01, (float)($item['qty'] ?? 1))])
@@ -237,17 +279,17 @@ class EditOrder extends Component
             }
 
             foreach ($this->items as $index => $item) {
-                $service = LaundryService::find($item['service_id']);
+                $service  = LaundryService::find($item['service_id']);
                 $itemData = [
-                    'laundry_order_id' => $this->order->id,
-                    'laundry_service_id' => $service->id,
+                    'laundry_order_id'      => $this->order->id,
+                    'laundry_service_id'    => $service->id,
                     'service_name_snapshot' => $service->name,
-                    'price_snapshot' => $item['price'],
-                    'qty' => $item['qty'] ?? 1,
-                    'treatment' => $item['treatment'],
-                    'date_in' => $item['date_in'],
-                    'date_estimated_done' => $item['date_estimated_done'],
-                    'is_free' => in_array($index, $freeIndices),
+                    'price_snapshot'        => $item['price'],
+                    'qty'                   => $item['qty'] ?? 1,
+                    'treatment'             => $item['treatment'],
+                    'date_in'               => $item['date_in'],
+                    'date_estimated_done'   => $item['date_estimated_done'],
+                    'is_free'               => in_array($index, $freeIndices),
                 ];
 
                 if (!empty($item['id'])) {
@@ -258,18 +300,30 @@ class EditOrder extends Component
             }
         });
 
-        session()->flash('message', 'Order ' . $this->order->order_code . ' updated successfully!');
+        session()->flash('message', 'Order ' . $this->order->order_code . ' berhasil diperbarui!');
         return redirect()->route('laundry.orders.show', $this->order->id);
     }
 
     public function render()
     {
-        $services = LaundryService::where('user_id', Auth::id())->where('is_active', true)->get();
-        $promos = LaundryPromo::where('user_id', Auth::id())->where('is_active', true)->get();
+        $storeOwnerId = $this->order->user_id;
+        $services     = LaundryService::where('user_id', $storeOwnerId)->where('is_active', true)->get();
+        $promos       = LaundryPromo::where('user_id', $storeOwnerId)->where('is_active', true)->get();
+
+        // Build assignable users (owner + accepted contributors)
+        $assignableUsers = collect([User::find($storeOwnerId)]);
+        $contributorUsers = LaundryStoreContributor::where('owner_user_id', $storeOwnerId)
+            ->where('status', 'accepted')
+            ->with('contributor')
+            ->get()
+            ->map(fn($c) => $c->contributor)
+            ->filter();
+        $assignableUsers = $assignableUsers->merge($contributorUsers);
 
         return view('livewire.laundry.edit-order', [
-            'services' => $services,
-            'promos' => $promos,
+            'services'        => $services,
+            'promos'          => $promos,
+            'assignableUsers' => $assignableUsers,
         ]);
     }
 }

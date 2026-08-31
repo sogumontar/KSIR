@@ -44,6 +44,7 @@ Route::middleware(['auth', 'user'])->prefix('user')->name('user.')->group(functi
 });
 
 Route::middleware(['auth', 'user'])->prefix('laundry')->name('laundry.')->group(function () {
+    Route::get('/store-select', \App\Livewire\Laundry\StoreSelector::class)->name('store-select');
     Route::get('/dashboard', \App\Livewire\Laundry\Dashboard::class)->name('dashboard');
     Route::get('/services', \App\Livewire\Laundry\ServiceManager::class)->name('services');
     Route::get('/promos', \App\Livewire\Laundry\PromoManager::class)->name('promos');
@@ -52,6 +53,7 @@ Route::middleware(['auth', 'user'])->prefix('laundry')->name('laundry.')->group(
     Route::get('/orders/{id}', \App\Livewire\Laundry\OrderDetail::class)->name('orders.show');
     Route::get('/orders/{id}/edit', \App\Livewire\Laundry\EditOrder::class)->name('orders.edit');
     Route::get('/orders/{id}/receipt', [\App\Http\Controllers\LaundryReceiptController::class, 'download'])->name('orders.receipt');
+    Route::get('/contributor/join/{token}', [\App\Http\Controllers\LaundryContributorController::class, 'join'])->name('contributor.join');
 });
 
 Route::get('/session-check', function () {

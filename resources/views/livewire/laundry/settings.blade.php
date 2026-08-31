@@ -135,4 +135,9 @@
         </div>
 
     </div>
+
+    {{-- Contributor Management (Owner only) --}}
+    <div class="mt-8">
+        @livewire('laundry.contributor-manager')
+    </div>
 </div>

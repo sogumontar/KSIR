@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 
 #[Fillable([
     'user_id',
+    'assignee_id',
     'tracking_code',
     'order_code',
     'customer_name',
@@ -67,6 +68,11 @@ class LaundryOrder extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assignee_id');
     }
 
     public function laundryPromo(): BelongsTo

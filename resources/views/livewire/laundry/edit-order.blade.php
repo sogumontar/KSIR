@@ -1,14 +1,36 @@
 <div>
     <!-- Header -->
-    <div class="flex items-center gap-4 mb-8">
+    <div class="flex items-center gap-4 mb-6">
         <a href="{{ route('laundry.orders.show', $order->id) }}" wire:navigate class="btn-icon bg-white shadow-sm hover:bg-slate-50 border border-slate-200 w-10 h-10 rounded-full flex items-center justify-center text-slate-600">
             <span class="material-symbols-outlined text-sm">arrow_back</span>
         </a>
         <div>
             <h2 class="font-headline-lg text-primary m-0">Edit Order {{ $order->order_code }}</h2>
-            <p class="text-xs text-slate-500 mt-1">Modify order items, customer info, status, or promo.</p>
+            <p class="text-xs text-slate-500 mt-1">{{ $isOwner ? 'Ubah detail order, status, atau promo.' : 'Mode Kontributor — Hanya bisa update status & pembayaran.' }}</p>
         </div>
     </div>
+
+    {{-- Contributor notice --}}
+    @if(!$isOwner)
+    <div class="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl flex items-center gap-3">
+        <span class="material-symbols-outlined text-amber-500 shrink-0">info</span>
+        <span class="text-sm">Sebagai <strong>kontributor</strong>, Anda hanya dapat mengubah <strong>status order</strong> dan <strong>status pembayaran</strong>. Hubungi owner untuk mengubah detail lainnya.</span>
+    </div>
+    @endif
+
+    {{-- Flash --}}
+    @if(session()->has('message'))
+    <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm flex items-center gap-2">
+        <span class="material-symbols-outlined text-green-600 text-base">check_circle</span>
+        {{ session('message') }}
+    </div>
+    @endif
+    @if(session()->has('error'))
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm flex items-center gap-2">
+        <span class="material-symbols-outlined text-red-600 text-base">error</span>
+        {{ session('error') }}
+    </div>
+    @endif
 
     <form wire:submit="submit" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Form Column -->
@@ -171,7 +193,53 @@
 
         <!-- Sidebar Summary -->
         <div class="space-y-6">
-            <!-- Status & Payment Card -->
+
+            {{-- Contributor quick-update panel (shown instead of full form for contributors) --}}
+            @if(!$isOwner)
+            <div class="card-surface p-6">
+                <div class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3">
+                    <span class="material-symbols-outlined text-secondary">published_with_changes</span>
+                    <h3 class="font-headline-md text-slate-900 m-0">Update Status</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label block mb-2">Status Order</label>
+                    <select wire:model="orderStatus" class="form-input w-full">
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="ready">Ready</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <button type="button" wire:click="quickUpdateStatus" class="btn-primary w-full justify-center mb-4">
+                    <span wire:loading.remove wire:target="quickUpdateStatus">Simpan Status</span>
+                    <span wire:loading wire:target="quickUpdateStatus">Menyimpan...</span>
+                </button>
+
+                <div class="mb-4">
+                    <label class="form-label block mb-2">Status Pembayaran</label>
+                    <div class="flex rounded-lg overflow-hidden border border-slate-200">
+                        <label class="flex-1 text-center cursor-pointer">
+                            <input wire:model="paymentStatus" type="radio" value="unpaid" class="peer sr-only">
+                            <div class="py-2 peer-checked:bg-amber-100 peer-checked:text-amber-800 peer-checked:font-bold text-slate-500 bg-slate-50 transition-colors">Unpaid</div>
+                        </label>
+                        <label class="flex-1 text-center cursor-pointer border-l border-slate-200">
+                            <input wire:model="paymentStatus" type="radio" value="paid" class="peer sr-only">
+                            <div class="py-2 peer-checked:bg-green-100 peer-checked:text-green-800 peer-checked:font-bold text-slate-500 bg-slate-50 transition-colors">Paid</div>
+                        </label>
+                    </div>
+                </div>
+                <button type="button" wire:click="quickUpdatePayment" class="btn-primary w-full justify-center">
+                    <span wire:loading.remove wire:target="quickUpdatePayment">Simpan Pembayaran</span>
+                    <span wire:loading wire:target="quickUpdatePayment">Menyimpan...</span>
+                </button>
+            </div>
+            @endif
+
+            <!-- Status & Payment Card (Owner only) -->
+            @if($isOwner)
             <div class="card-surface p-6">
                 <div class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3">
                     <span class="material-symbols-outlined text-secondary">published_with_changes</span>
@@ -183,13 +251,14 @@
                     <select wire:model="orderStatus" class="form-input w-full">
                         <option value="pending">Pending</option>
                         <option value="processing">Processing</option>
+                        <option value="in_progress">In Progress</option>
                         <option value="ready">Ready</option>
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
 
-                <div>
+                <div class="mb-4">
                     <label class="form-label block mb-2">Payment Status</label>
                     <div class="flex rounded-lg overflow-hidden border border-slate-200">
                         <label class="flex-1 text-center cursor-pointer">
@@ -202,7 +271,22 @@
                         </label>
                     </div>
                 </div>
+
+                {{-- Assignee (Owner only) --}}
+                <div class="mt-4">
+                    <label class="form-label block mb-2">Assignee</label>
+                    <select wire:model="assigneeId" class="form-input w-full bg-white">
+                        <option value="">-- Tidak ada assignee --</option>
+                        @foreach($assignableUsers as $aUser)
+                            @if($aUser)
+                            <option value="{{ $aUser->id }}">{{ $aUser->name }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                    @error('assigneeId')<span class="text-error text-xs mt-1 block">{{ $message }}</span>@enderror
+                </div>
             </div>
+            @endif
 
             <!-- Promo Card -->
             <div class="card-surface p-6">
@@ -225,6 +309,8 @@
                 @endif
             </div>
 
+            {{-- Summary / Save (Owner only) --}}
+            @if($isOwner)
             <!-- Summary Card -->
             <div class="card-surface p-6">
                 <div class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3">
@@ -262,6 +348,7 @@
                     </button>
                 </div>
             </div>
+            @endif
         </div>
     </form>
 </div>

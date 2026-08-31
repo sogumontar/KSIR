@@ -6,12 +6,14 @@ use App\Models\LaundryOrder;
 use App\Models\LaundryOrderItem;
 use App\Models\LaundryPromo;
 use App\Models\LaundryService;
+use App\Models\LaundryStoreContributor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -20,6 +22,10 @@ use Livewire\WithFileUploads;
 class CreateOrder extends Component
 {
     use WithFileUploads;
+
+    /** Store owner context (could differ from Auth::id() if contributor) */
+    #[Url]
+    public int $storeOwnerId = 0;
 
     // Customer
     public $customerName = '';
@@ -42,6 +48,21 @@ class CreateOrder extends Component
 
     public function mount()
     {
+        if ($this->storeOwnerId === 0) {
+            $this->storeOwnerId = Auth::id();
+        }
+
+        // Validate contributor access
+        if ($this->storeOwnerId !== Auth::id()) {
+            $hasAccess = LaundryStoreContributor::where('owner_user_id', $this->storeOwnerId)
+                ->where('contributor_user_id', Auth::id())
+                ->where('status', 'accepted')
+                ->exists();
+            if (!$hasAccess) {
+                $this->storeOwnerId = Auth::id();
+            }
+        }
+
         $this->addItem();
     }
 
@@ -62,7 +83,7 @@ class CreateOrder extends Component
     public function updatedCustomerName($value)
     {
         if (strlen(trim($value)) >= 1) {
-            $this->suggestions = LaundryOrder::where('user_id', Auth::id())
+            $this->suggestions = LaundryOrder::where('user_id', $this->storeOwnerId)
                 ->where('customer_name', 'like', '%' . trim($value) . '%')
                 ->select('customer_name', 'customer_phone')
                 ->orderBy('customer_name')
@@ -209,7 +230,8 @@ class CreateOrder extends Component
             $orderModel = new LaundryOrder();
             $orderModel->orderCodePrefix = $codePrefix;
             $order = $orderModel->fill([
-                'user_id'          => Auth::id(),
+                'user_id'          => $this->storeOwnerId,   // store owner
+                'assignee_id'      => Auth::id(),             // auto-assign to creator
                 'customer_name'    => $this->customerName,
                 'customer_phone'   => $this->customerPhone,
                 'customer_address' => $this->customerAddress,
@@ -263,12 +285,12 @@ class CreateOrder extends Component
 
     public function render()
     {
-        $services = LaundryService::where('user_id', Auth::id())->where('is_active', true)->get();
-        $promos = LaundryPromo::where('user_id', Auth::id())->where('is_active', true)->get();
+        $services = LaundryService::where('user_id', $this->storeOwnerId)->where('is_active', true)->get();
+        $promos   = LaundryPromo::where('user_id', $this->storeOwnerId)->where('is_active', true)->get();
 
         return view('livewire.laundry.create-order', [
             'services' => $services,
-            'promos' => $promos,
+            'promos'   => $promos,
         ]);
     }
 }

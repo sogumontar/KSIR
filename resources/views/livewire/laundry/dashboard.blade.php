@@ -139,7 +139,7 @@
 }" x-init="$nextTick(() => initCharts())" x-on:livewire-update.window="$nextTick(() => initCharts())">
 
     <!-- Header -->
-    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-md mb-8">
+    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-md mb-4">
         <div>
             <h2 class="font-headline-lg text-headline-lg text-slate-900 m-0">Laundry Dashboard</h2>
         </div>
@@ -148,7 +148,8 @@
                 <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">{{ session('status_message') }}</span>
             @endif
 
-            {{-- Store Status Widget --}}
+            {{-- Store Status Widget (Owner only) --}}
+            @if($this->isOwner())
             <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-slate-200">
                 <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Toko:</span>
                 <div class="flex bg-slate-100 p-0.5 rounded-xl">
@@ -163,13 +164,28 @@
                     </button>
                 </div>
             </div>
+            @endif
 
-            <a href="{{ route('laundry.orders.create') }}" wire:navigate class="btn-primary gap-2">
+            <a href="{{ route('laundry.orders.create', ['storeOwnerId' => $storeOwnerId]) }}" wire:navigate class="btn-primary gap-2">
                 <span class="material-symbols-outlined">add</span>
                 New Order
             </a>
         </div>
     </div>
+
+    {{-- Contributor context banner --}}
+    @if(!$this->isOwner())
+    <div class="mb-6 p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-xl flex items-center gap-3">
+        <span class="material-symbols-outlined text-indigo-500 shrink-0">supervised_user_circle</span>
+        <div class="flex-1 min-w-0">
+            <span class="text-sm font-semibold">Mode Kontributor</span>
+            <span class="text-sm text-indigo-600 ml-1">— Anda mengelola toko <strong>{{ $storeSetting?->store_name ?: $storeOwner?->name }}</strong></span>
+        </div>
+        <a href="{{ route('laundry.store-select') }}" wire:navigate class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 shrink-0">
+            <span class="material-symbols-outlined text-sm">swap_horiz</span> Ganti Toko
+        </a>
+    </div>
+    @endif
 
     <!-- Sub-nav pills -->
     <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
@@ -416,6 +432,7 @@
                                 <a href="{{ route('laundry.orders.edit', $order->id) }}" wire:navigate class="btn-icon text-amber-600 hover:bg-amber-50" title="Edit Order">
                                     <span class="material-symbols-outlined text-sm">edit</span>
                                 </a>
+                                @if($this->isOwner())
                                 <button
                                     type="button"
                                     wire:click="deleteOrder({{ $order->id }})"
@@ -425,6 +442,7 @@
                                 >
                                     <span class="material-symbols-outlined text-sm">delete</span>
                                 </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -440,4 +458,116 @@
             {{ $orders->links() }}
         </div>
     </div>
+
+    {{-- ===================== ASSIGNEE ANALYTICS ===================== --}}
+    <div class="mt-8 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <button
+            wire:click="toggleAssigneeReport"
+            class="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors text-left"
+        >
+            <span class="font-bold text-slate-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">person_search</span>
+                Laporan per Assignee
+            </span>
+            <span class="material-symbols-outlined text-slate-400 transition-transform {{ $showAssigneeReport ? 'rotate-180' : '' }}">expand_more</span>
+        </button>
+
+        @if($showAssigneeReport)
+        <div class="px-6 pb-6 border-t border-slate-100">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div>
+                    <label class="form-label text-xs">Assignee</label>
+                    <select wire:model.live="assigneeFilter" class="form-input bg-white w-full text-sm">
+                        <option value="">-- Pilih Assignee --</option>
+                        @foreach($assignableUsers as $aUser)
+                            @if($aUser)
+                            <option value="{{ $aUser->id }}">{{ $aUser->name }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label text-xs">Dari Tanggal</label>
+                    <input type="date" wire:model.live="assigneeDateFrom" class="form-input bg-white w-full text-sm">
+                </div>
+                <div>
+                    <label class="form-label text-xs">Sampai Tanggal</label>
+                    <input type="date" wire:model.live="assigneeDateTo" class="form-input bg-white w-full text-sm">
+                </div>
+            </div>
+
+            @if($assigneeReport && $assigneeFilter)
+            <div class="mt-6">
+                {{-- Summary cards --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-center">
+                        <p class="text-xs text-indigo-500 font-semibold uppercase tracking-wider mb-1">Total Order</p>
+                        <p class="text-3xl font-bold text-indigo-700">{{ $assigneeReportOrders->count() }}</p>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
+                        <p class="text-xs text-emerald-500 font-semibold uppercase tracking-wider mb-1">Total Harga</p>
+                        <p class="text-2xl font-bold text-emerald-700">Rp{{ number_format($assigneeReportTotal, 0, ',', '.') }}</p>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-center">
+                        <p class="text-xs text-amber-500 font-semibold uppercase tracking-wider mb-1">Total Pcs</p>
+                        <p class="text-3xl font-bold text-amber-700">{{ number_format($assigneeReportPcs) }}</p>
+                    </div>
+                </div>
+
+                {{-- Orders table --}}
+                @if($assigneeReportOrders->isNotEmpty())
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Kode</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Pelanggan</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Total</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Pcs</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($assigneeReportOrders as $rOrder)
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-4 py-3 font-mono font-semibold text-primary text-xs">{{ $rOrder->order_code }}</td>
+                                <td class="px-4 py-3 text-slate-700 font-medium">{{ $rOrder->customer_name }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+                                        {{ match($rOrder->status) {
+                                            'completed' => 'bg-green-100 text-green-700',
+                                            'cancelled' => 'bg-red-100 text-red-700',
+                                            'ready'     => 'bg-blue-100 text-blue-700',
+                                            default     => 'bg-amber-100 text-amber-700'
+                                        } }}">
+                                        {{ ucfirst(str_replace('_', ' ', $rOrder->status)) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right font-semibold font-mono text-slate-900">Rp{{ number_format($rOrder->total_amount, 0, ',', '.') }}</td>
+                                <td class="px-4 py-3 text-right font-semibold text-slate-700">{{ $rOrder->items->sum(fn($i) => $i->qty ?? 1) }}</td>
+                                <td class="px-4 py-3 text-center">
+                                    <a href="{{ route('laundry.orders.show', $rOrder->id) }}" wire:navigate class="btn-icon text-xs" title="Lihat">
+                                        <span class="material-symbols-outlined text-sm">visibility</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endif
+            </div>
+            @elseif($assigneeFilter)
+                <div class="mt-6 text-center py-8 text-slate-400 text-sm">
+                    <span class="material-symbols-outlined text-3xl block mb-2 text-slate-300">inbox</span>
+                    Tidak ada order ditemukan untuk filter ini.
+                </div>
+            @else
+                <div class="mt-4 text-slate-400 text-sm">Pilih assignee untuk melihat laporan.</div>
+            @endif
+        </div>
+        @endif
+    </div>
+
 </div>
