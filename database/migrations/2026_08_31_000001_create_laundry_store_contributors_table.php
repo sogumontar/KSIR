@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::dropIfExists('laundry_store_contributors');
         Schema::create('laundry_store_contributors', function (Blueprint $table) {
             $table->id();
             $table->foreignId('owner_user_id')->constrained('users')->cascadeOnDelete();
