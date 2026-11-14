@@ -48,6 +48,8 @@ Route::middleware(['auth', 'user'])->prefix('laundry')->name('laundry.')->group(
     Route::get('/dashboard', \App\Livewire\Laundry\Dashboard::class)->name('dashboard');
     Route::get('/services', \App\Livewire\Laundry\ServiceManager::class)->name('services');
     Route::get('/promos', \App\Livewire\Laundry\PromoManager::class)->name('promos');
+    Route::get('/website', \App\Livewire\Laundry\WebsiteManager::class)->name('website');
+    Route::get('/showcase', \App\Livewire\Laundry\ShowcaseManager::class)->name('showcase');
     Route::get('/settings', \App\Livewire\Laundry\Settings::class)->name('settings');
     Route::get('/orders/create', \App\Livewire\Laundry\CreateOrder::class)->name('orders.create');
     Route::get('/orders/{id}', \App\Livewire\Laundry\OrderDetail::class)->name('orders.show');
@@ -78,6 +80,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/laundry/track/{tracking_code}', \App\Livewire\Laundry\PublicTracking::class)->name('laundry.public.track');
+Route::get('/cleanlab', \App\Livewire\Laundry\PublicLandingPage::class)->name('cleanlab.landing');
+Route::get('/s/{slug}', \App\Livewire\Laundry\PublicLandingPage::class)->name('laundry.public.site');
 
 /**
  * Storage File Server
