@@ -105,17 +105,23 @@ Route::get('/files/{path}', function (string $path) {
         return response()->file($file, ['Content-Type' => $mimeType]);
     }
 
-    // Fallback for bundled Clean Lab assets inside the repo's public/ directory
-    // (useful on cPanel where ~/KSIR/public is separate from ~/public_html)
+    // Fallback for bundled Clean Lab assets inside the repo (resources/images/cleanlab or base_path/public)
+    // Always works on cPanel even when public_path() is bound to ~/public_html
+    $bundledLogo      = resource_path('images/cleanlab/logo.jpg');
+    $bundledPricelist = resource_path('images/cleanlab/pricelist.jpg');
+
     $bundledFallbacks = [
-        'laundry/website/cleanlab-logo.jpg'      => public_path('images/cleanlab/logo.jpg'),
-        'laundry/website/cleanlab-pricelist.jpg' => public_path('images/cleanlab/pricelist.jpg'),
-        'images/cleanlab/logo.jpg'               => public_path('images/cleanlab/logo.jpg'),
-        'images/cleanlab/pricelist.jpg'          => public_path('images/cleanlab/pricelist.jpg'),
+        'laundry/website/cleanlab-logo.jpg'      => $bundledLogo,
+        'laundry/website/cleanlab-pricelist.jpg' => $bundledPricelist,
+        'images/cleanlab/logo.jpg'               => $bundledLogo,
+        'images/cleanlab/pricelist.jpg'          => $bundledPricelist,
     ];
 
     if (isset($bundledFallbacks[$path]) && is_file($bundledFallbacks[$path])) {
-        return response()->file($bundledFallbacks[$path], ['Content-Type' => 'image/jpeg']);
+        return response()->file($bundledFallbacks[$path], [
+            'Content-Type'  => 'image/jpeg',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
     }
 
     abort(404);

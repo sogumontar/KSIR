@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'CLEAN LAB — Premium Service Shoes, Helmets, Bags, Hats & Sandals' }}</title>
     <meta name="description" content="CLEAN LAB — Serahkan pembersihan Anda kepada ahlinya! Spesialis cuci sepatu, sandal, helm, tas, topi & koper di Apartemen Menara Cawang, Jakarta Timur. Gratis konsultasi & antar jemput radius 3KM.">
-    <link rel="icon" type="image/jpeg" href="{{ route('storage.file', ['path' => 'images/cleanlab/logo.jpg']) }}">
+    <link rel="icon" type="image/jpeg" href="{{ cleanlab_asset_src(null, 'logo.jpg') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

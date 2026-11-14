@@ -27,3 +27,24 @@ if (!function_exists('storage_url')) {
         return route('storage.file', ['path' => $path]);
     }
 }
+
+if (!function_exists('cleanlab_asset_src')) {
+    /**
+     * Resolve an image source for Clean Lab default or uploaded assets.
+     * If a custom file exists on the public storage disk, serve it via storage_url().
+     * Otherwise, embed or serve from resources/images/cleanlab/{type}.jpg so it never 404s on cPanel.
+     */
+    function cleanlab_asset_src(?string $storagePath, string $defaultFile = 'logo.jpg'): string
+    {
+        if (!empty($storagePath) && \Illuminate\Support\Facades\Storage::disk('public')->exists($storagePath)) {
+            return storage_url($storagePath);
+        }
+
+        $bundled = resource_path('images/cleanlab/' . $defaultFile);
+        if (is_file($bundled)) {
+            return 'data:image/jpeg;base64,' . base64_encode((string) file_get_contents($bundled));
+        }
+
+        return route('storage.file', ['path' => 'images/cleanlab/' . $defaultFile]);
+    }
+}

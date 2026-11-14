@@ -150,7 +150,7 @@
                     <label class="form-label block mb-2">Logo Website Clean Lab</label>
                     @if($existingLogoPath)
                         <div class="mb-3 flex items-center gap-4">
-                            <img src="{{ storage_url($existingLogoPath) }}" alt="Logo" class="h-20 w-auto max-w-[200px] rounded-xl object-contain bg-white p-2 border border-slate-200">
+                            <img src="{{ cleanlab_asset_src($existingLogoPath, 'logo.jpg') }}" alt="Logo" class="h-20 w-auto max-w-[200px] rounded-xl object-contain bg-white p-2 border border-slate-200">
                             <button type="button" wire:click="removeLogo" class="text-xs text-red-600 font-semibold hover:underline">Hapus Logo</button>
                         </div>
                     @endif
@@ -278,7 +278,7 @@
                 <div class="flex flex-col md:flex-row items-start gap-6">
                     @if($existingPricelistImagePath)
                         <div class="space-y-2">
-                            <img src="{{ storage_url($existingPricelistImagePath) }}" alt="Pricelist Clean Lab" class="w-56 rounded-2xl border border-slate-200 shadow-sm object-contain bg-white">
+                            <img src="{{ cleanlab_asset_src($existingPricelistImagePath, 'pricelist.jpg') }}" alt="Pricelist Clean Lab" class="w-56 rounded-2xl border border-slate-200 shadow-sm object-contain bg-white">
                             <button type="button" wire:click="removePricelistImage" class="text-xs text-red-600 font-semibold hover:underline block">Hapus Gambar Pricelist</button>
                         </div>
                     @endif

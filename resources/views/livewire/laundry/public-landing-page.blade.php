@@ -25,13 +25,8 @@
     $pricelistImgPath   = $config['pricelist_image_path'] ?? 'laundry/website/cleanlab-pricelist.jpg';
     $heroImgPath        = $config['hero_image_path'] ?? ($setting?->header_bg_image ?? null);
 
-    $logoUrl = ($logoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($logoPath))
-        ? storage_url($logoPath)
-        : route('storage.file', ['path' => 'images/cleanlab/logo.jpg']);
-
-    $pricelistImgUrl = ($pricelistImgPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($pricelistImgPath))
-        ? storage_url($pricelistImgPath)
-        : route('storage.file', ['path' => 'images/cleanlab/pricelist.jpg']);
+    $logoUrl         = cleanlab_asset_src($logoPath, 'logo.jpg');
+    $pricelistImgUrl = cleanlab_asset_src($pricelistImgPath, 'pricelist.jpg');
 
     $statusLabels = [
         'open'       => 'Buka Sekarang',
