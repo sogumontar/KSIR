@@ -98,12 +98,25 @@ Route::get('/files/{path}', function (string $path) {
     // Decode any URL-encoded slashes
     $path = urldecode($path);
 
-    if (!Storage::disk('public')->exists($path)) {
-        abort(404);
+    if (Storage::disk('public')->exists($path)) {
+        $file     = Storage::disk('public')->path($path);
+        $mimeType = Storage::disk('public')->mimeType($path);
+
+        return response()->file($file, ['Content-Type' => $mimeType]);
     }
 
-    $file     = Storage::disk('public')->path($path);
-    $mimeType = Storage::disk('public')->mimeType($path);
+    // Fallback for bundled Clean Lab assets inside the repo's public/ directory
+    // (useful on cPanel where ~/KSIR/public is separate from ~/public_html)
+    $bundledFallbacks = [
+        'laundry/website/cleanlab-logo.jpg'      => public_path('images/cleanlab/logo.jpg'),
+        'laundry/website/cleanlab-pricelist.jpg' => public_path('images/cleanlab/pricelist.jpg'),
+        'images/cleanlab/logo.jpg'               => public_path('images/cleanlab/logo.jpg'),
+        'images/cleanlab/pricelist.jpg'          => public_path('images/cleanlab/pricelist.jpg'),
+    ];
 
-    return response()->file($file, ['Content-Type' => $mimeType]);
+    if (isset($bundledFallbacks[$path]) && is_file($bundledFallbacks[$path])) {
+        return response()->file($bundledFallbacks[$path], ['Content-Type' => 'image/jpeg']);
+    }
+
+    abort(404);
 })->where('path', '.*')->name('storage.file');

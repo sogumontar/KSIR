@@ -18,9 +18,9 @@ if (!function_exists('storage_url')) {
             return null;
         }
 
-        // In local development, use the symlink-based asset URL.
-        // In production (where symlinks don't work), use the PHP file-serving route.
-        if (app()->environment('local')) {
+        // In local development, if the file is not in storage/app/public yet
+        // (e.g. bundled Clean Lab logo/pricelist), serve via the /files/{path} route fallback.
+        if (app()->environment('local') && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
             return asset('storage/' . $path);
         }
 
